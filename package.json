@@ -1,0 +1,14 @@
+{
+  "name": "group-11-gym-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CSCE 3444 Gym Tracker web application",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}

@@ -1,50 +1,34 @@
 # Gym Tracker
 
-Gym Tracker is a web application designed to help users create workout routines, log their workouts, and track their fitness progress over time.
-
-This project is being developed for **CSCE 3444 - Software Engineering**.
-
-## Features
-
-- Create and log in to a user account
-- Create, edit, and delete workout routines
-- Browse and select exercises
-- Start and log workouts
-- Record sets, repetitions, and weight
-- View previous workout history
-- Track strength and workout progress
-- Choose between pounds (lbs) and kilograms (kg)
-- Manage basic profile information
+Gym Tracker is a simple web application for creating workout routines, logging workouts, and tracking fitness progress. It is being developed for **CSCE 3444 - Software Engineering**.
 
 ## Tech Stack
 
-- **Frontend:** HTML, CSS, JavaScript
+- **Frontend:** HTML, CSS, and JavaScript
 - **Backend:** Node.js with Express
 - **Database:** SQLite
 
 ## Project Structure
 
-The application uses a basic three-tier architecture:
+```text
+frontend/   Browser UI and client-side code
+backend/    Express server and application logic
+database/   SQLite schema and database files
+docs/       SRS and supporting documentation
+```
 
-1. **Frontend** – Displays the user interface and handles user interaction.
-2. **Backend** – Handles application logic, authentication, and communication with the database.
-3. **Database** – Stores user accounts, routines, workouts, exercises, and progress data.
+## Getting Started
 
-## Main Pages
+1. Install [Node.js](https://nodejs.org/).
+2. Run `npm install`.
+3. Run `npm start`.
+4. Open `http://localhost:3000`.
 
-- Login / Registration
-- Dashboard
-- Start Workout
-- Active Workout
-- Routines
-- Progress / Workout History
-- Profile
+The starter server also exposes `GET /api/health`.
 
-## Running the Project
+## Initial Scope
 
-> Setup instructions will be added as development progresses.
-
-Once the project is implemented, this section will contain the steps required to install dependencies and run the application locally.
+The first version focuses on user accounts, workout routines, workout logging, history, progress tracking, and pounds/kilograms preferences. Nutrition tracking, social networking, payments, wearable integrations, and AI coaching are outside the initial scope.
 
 ## Team
 
@@ -52,17 +36,3 @@ Once the project is implemented, this section will contain the steps required to
 - Laura Sachica
 - Wasif Shariff
 - Taylor Shaver
-
-## Project Scope
-
-Gym Tracker is intended to be a simple strength-training tracker. The initial version does **not** include features such as nutrition tracking, social networking, payments, wearable integrations, or personalized AI coaching.
-
-## Documentation
-
-Detailed requirements, use cases, system architecture, UI designs, and constraints can be found in the project's **Software Requirements Specification (SRS)**.
-
-## Status
-
-🚧 **In Development**
-
-This project is currently being developed as part of CSCE 3444 - Software Engineering.
