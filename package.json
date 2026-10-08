@@ -5,10 +5,15 @@
   "description": "CSCE 3444 Gym Tracker web application",
   "main": "backend/server.js",
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
