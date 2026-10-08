@@ -1,14 +1,9 @@
-const express = require('express');
+// Entry point: loads settings from .env and starts the HTTP server.
+require('dotenv').config();
 
-const app = express();
+const app = require('./app');
+
 const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-app.use(express.static('frontend'));
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
 
 app.listen(PORT, () => {
   console.log(`Gym Tracker server running on http://localhost:${PORT}`);
