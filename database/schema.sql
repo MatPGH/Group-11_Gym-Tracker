@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS routines (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS routines_exercises (
+CREATE TABLE IF NOT EXISTS routine_exercises (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   routine_id INTEGER NOT NULL,
   exercise_id INTEGER NOT NULL,
@@ -38,11 +38,32 @@ CREATE TABLE IF NOT EXISTS workouts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   routine_id INTEGER,
-  workout_date TEXT NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT,
+  notes TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (routine_id) REFERENCES routines(id)
 );
 
+CREATE TABLE IF NOT EXISTS workout_sets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workout_id INTEGER NOT NULL,
+  exercise_id INTEGER NOT NULL,
+  set_number INTEGER NOT NULL,
+  weight REAL NOT NULL,
+  reps INTEGER NOT NULL,
+  completed INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (workout_id) REFERENCES workouts(id),
+  FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+);
+
+CREATE TABLE IF NOT EXISTS body_weight_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  date TEXT NOT NULL,
+  weight REAL NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 
 
