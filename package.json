@@ -6,7 +6,8 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "setup": "node backend/initDatabase.js && node backend/seedExercises.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
