@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile | Gym Tracker</title>
+<link rel="stylesheet" href="dashboard-profile.css">
+<script src="dashboard-profile.js" defer>
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app-shell">
+<header class="topbar">
+<a class="back-link" href="index.html">← Dashboard</a>
+<span class="brand">Gym Tracker</span>
+</header>
+<main id="main">
+<div class="page-heading">
+<p class="eyebrow">YOUR ACCOUNT, YOUR PROGRESS</p>
+<h1>Profile</h1>
+<p>Make your training feel like you.</p>
+</div>
+<p class="preview-note">Page preview · Changes apply on this page only and reset when you leave or refresh.</p>
+<section class="profile-card card" aria-label="Profile picture placeholder">
+<div class="avatar" aria-hidden="true">●<span>◡</span>
+</div>
+<h2 id="display-name">Your name</h2>
+<p>Profile picture placeholder</p>
+<button class="text-button" data-feature="Profile picture">Change picture</button>
+</section>
+<form id="profile-form" class="card settings">
+<h2>Personal settings</h2>
+<label for="name">Display name</label>
+<input id="name" name="displayName" type="text" placeholder="Enter your name" autocomplete="nickname" maxlength="60" required aria-describedby="name-help">
+<p class="field-help" id="name-help">Use the name you’d like to see in Gym Tracker (1–60 characters).</p>
+<fieldset>
+<legend>Weight units</legend>
+<div class="unit-options">
+<label>
+<input type="radio" name="units" value="lbs" checked>
+<span>Pounds (lbs)</span>
+</label>
+<label>
+<input type="radio" name="units" value="kg">
+<span>Kilograms (kg)</span>
+</label>
+</div>
+</fieldset>
+<button type="submit" class="primary">Apply preview</button>
+<p id="profile-status" class="status" role="status" aria-live="polite">
+</p>
+</form>
+<section class="card account" aria-labelledby="account-heading">
+<h2 id="account-heading">Account</h2>
+<button class="account-action" data-feature="Log Out">Log Out <span aria-hidden="true">→</span>
+</button>
+<button class="account-action danger" data-feature="Delete Account">Delete Account <span aria-hidden="true">→</span>
+</button>
+<p class="field-help">Account actions will be available when account services are connected.</p>
+</section>
+</main>
+<nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html" >⌂<span>Dashboard</span>
+</a>
+<button type="button" data-feature="Start Workout">＋<span>Start Workout</span>
+</button>
+<button type="button" data-feature="Routines">☷<span>Routines</span>
+</button>
+<button type="button" data-feature="View Progress">▥<span>View Progress</span>
+</button>
+</nav>
+</div>
+<dialog id="feature-dialog" aria-labelledby="dialog-title">
+<h2 id="dialog-title">
+</h2>
+<p id="dialog-message">
+</p>
+<form method="dialog">
+<button class="primary">Got it</button>
+</form>
+</dialog>
+</body>
+</html>

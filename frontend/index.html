@@ -1,16 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gym Tracker</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard | Gym Tracker</title>
+<link rel="stylesheet" href="dashboard-profile.css">
+<script src="dashboard-profile.js" defer>
+</script>
 </head>
 <body>
-  <main>
-    <h1>Gym Tracker</h1>
-    <p>Track workouts, routines, and progress.</p>
-  </main>
-  <script src="app.js"></script>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app-shell">
+<header class="topbar">
+<a class="brand" href="index.html">Gym Tracker<span>TRACK, TRAIN, PROGRESS</span>
+</a>
+<a class="profile-link" href="profile.html" aria-label="Open Profile">☺</a>
+</header>
+<main id="main">
+<div class="page-heading">
+<p class="eyebrow">YOUR TRAINING, AT A GLANCE</p>
+<h1>Ready for your next rep?</h1>
+<p>Make time for a stronger you.</p>
+</div>
+<p class="preview-note">Page preview · Account and workout data are not connected yet.</p>
+<section class="hero" aria-labelledby="workout-heading">
+<div>
+<p class="eyebrow">ONE WORKOUT AT A TIME</p>
+<h2 id="workout-heading">Let’s get moving.</h2>
+<p>Build a routine. Show up. Track your progress.</p>
+<button class="primary" data-feature="Start Workout">Start Workout <span aria-hidden="true">↗</span>
+</button>
+</div>
+<span class="hero-mark" aria-hidden="true">＋</span>
+</section>
+<section aria-labelledby="overview-heading">
+<h2 id="overview-heading">Your overview</h2>
+<div class="metrics">
+<div class="card">
+<span class="metric">—</span>
+<span>Workouts this week</span>
+</div>
+<div class="card">
+<span class="metric">—</span>
+<span>Saved routines</span>
+</div>
+<div class="card">
+<span class="metric">—</span>
+<span>Training streak</span>
+</div>
+</div>
+</section>
+<section aria-labelledby="actions-heading">
+<h2 id="actions-heading">Keep building</h2>
+<div class="actions">
+<button class="card action" data-feature="Routines">
+<span class="action-icon" aria-hidden="true">☷</span>
+<strong>Routines</strong>
+<span>Plan your next session</span>
+<span class="arrow" aria-hidden="true">↗</span>
+</button>
+<button class="card action" data-feature="View Progress">
+<span class="action-icon" aria-hidden="true">▥</span>
+<strong>View Progress</strong>
+<span>See how far you’ve come</span>
+<span class="arrow" aria-hidden="true">↗</span>
+</button>
+</div>
+</section>
+<section class="card activity" aria-labelledby="recent-heading">
+<h2 id="recent-heading">Recent workouts</h2>
+<p>Your workout activity will appear here once workout logging is available.</p>
+<button class="text-button" data-feature="Workout History">View Workout History <span aria-hidden="true">→</span>
+</button>
+</section>
+</main>
+<nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html" aria-current="page">⌂<span>Dashboard</span>
+</a>
+<button type="button" data-feature="Start Workout">＋<span>Start Workout</span>
+</button>
+<button type="button" data-feature="Routines">☷<span>Routines</span>
+</button>
+<button type="button" data-feature="View Progress">▥<span>View Progress</span>
+</button>
+</nav>
+</div>
+<dialog id="feature-dialog" aria-labelledby="dialog-title">
+<h2 id="dialog-title">
+</h2>
+<p id="dialog-message">
+</p>
+<form method="dialog">
+<button class="primary">Got it</button>
+</form>
+</dialog>
 </body>
 </html>

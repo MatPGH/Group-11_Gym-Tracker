@@ -1,0 +1,68 @@
+/* S1-05 page styles, isolated from the team's future shared styles.css. */
+:root { color-scheme: dark; --bg: #0a0c0b; --panel: #181c19; --border: #30372e; --text: #f4f7ef; --muted: #b0b8aa; --lime: #d0fa31; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; line-height: 1.5; }
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--lime); outline-offset: 5px; }
+button:hover, a:hover { filter: brightness(1.12); }
+.app-shell { max-width: 960px; margin: auto; padding: 0 28px; }
+.topbar { min-height: 96px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); gap: 16px; }
+.brand { font-size: 22px; font-weight: 800; color: var(--lime); }
+.brand span { display: block; color: var(--muted); font-size: 9px; letter-spacing: 2px; }
+.profile-link { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid var(--border); border-radius: 50%; font-size: 28px; }
+.back-link { font-size: 14px; padding: 12px 0; }
+main { padding: 32px 0 125px; }
+h1, h2, p { margin-top: 0; }
+h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin-bottom: 12px; letter-spacing: -1px; }
+h2 { font-size: 19px; margin-bottom: 16px; }
+p { color: var(--muted); }
+.eyebrow { color: var(--lime); font-size: 10px; font-weight: bold; letter-spacing: 2px; margin-bottom: 12px; }
+.preview-note { padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
+section { margin-top: 26px; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+.hero { padding: 30px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #61762c; border-radius: 18px; background: linear-gradient(120deg,#222d16,#141a10); }
+.hero h2 { font-size: 30px; margin-bottom: 8px; }
+.hero-mark { font-size: 120px; color: var(--lime); line-height: 1; transform: rotate(-12deg); }
+.primary { background: var(--lime); border: none; border-radius: 9px; color: #142000; font-weight: 700; min-height: 48px; padding: 12px 22px; }
+.primary span { margin-left: 20px; }
+.metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.metrics .card { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); }
+.metric { font-size: 30px; color: var(--lime); font-weight: bold; margin-bottom: 6px; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.action { color: var(--text); text-align: left; position: relative; display: flex; flex-direction: column; gap: 6px; }
+.action-icon { color: var(--lime); font-size: 30px; }
+.action strong { font-size: 19px; }
+.action > span:not(.action-icon):not(.arrow) { font-size: 14px; color: var(--muted); }
+.arrow { position: absolute; right: 22px; top: 22px; color: var(--lime); }
+.text-button { border: none; background: none; padding: 10px 0; color: var(--lime); font-weight: 600; min-height: 44px; }
+.activity p { margin-bottom: 2px; }
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%,960px); display: grid; grid-template-columns: repeat(4,1fr); background: #101410; border: 1px solid var(--border); border-bottom: 0; padding: 10px 8px max(12px,env(safe-area-inset-bottom)); z-index: 2; }
+.bottom-nav a, .bottom-nav button { background: none; border: none; color: var(--muted); display: flex; align-items: center; flex-direction: column; font-size: 26px; padding: 5px 0; border-radius: 8px; }
+.bottom-nav span { font-size: 12px; margin-top: 2px; }
+.bottom-nav [aria-current] { color: var(--lime); background: #202719; }
+.profile-card { text-align: center; }
+.avatar { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--lime); color: #9aa28f; font-size: 36px; margin: 0 auto 18px; line-height: 1.4; overflow: hidden; }
+.avatar span { display: block; font-size: 72px; line-height: .4; }
+.profile-card h2 { margin-bottom: 4px; overflow-wrap: anywhere; }
+.profile-card p { font-size: 13px; margin-bottom: 0; }
+.settings { margin-top: 22px; }
+.settings > label, legend { font-size: 14px; font-weight: bold; }
+input[type=text] { display: block; width: 100%; padding: 12px 14px; margin-top: 10px; background: #0d100d; border: 1px solid #56604e; color: var(--text); border-radius: 8px; }
+.field-help { font-size: 13px; margin-top: 8px; }
+fieldset { border: 0; margin: 24px 0; padding: 0; }
+.unit-options { display: flex; gap: 12px; margin-top: 12px; }
+.unit-options label { display: flex; align-items: center; gap: 8px; background: #0d100d; padding: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+input[type=radio] { accent-color: var(--lime); width: 18px; height: 18px; margin: 0; }
+.unit-options label:has(input:checked) { border-color: var(--lime); }
+.status { color: var(--lime); font-size: 14px; margin: 14px 0 0; overflow-wrap: anywhere; }
+.status:empty { display: none; }
+.account-action { display: flex; justify-content: space-between; width: 100%; background: none; border: none; border-top: 1px solid var(--border); padding: 18px 0; color: var(--text); text-align: left; }
+.danger { color: #ff9b98; }
+dialog { width: min(440px,calc(100% - 40px)); background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+dialog::backdrop { background: #000b; }
+.skip-link { position: fixed; top: -100px; left: 12px; padding: 12px; background: var(--lime); color: black; z-index: 5; }
+.skip-link:focus { top: 12px; }
+@media(max-width: 540px) { .app-shell { padding: 0 18px; } .topbar { min-height: 78px; } main { padding-top: 26px; } .hero { padding: 22px; } .hero-mark { display: none; } .metrics { gap: 8px; } .metrics .card { padding: 14px 10px; font-size: 12px; } .card { padding: 18px; } .actions { gap: 10px; } .action strong { font-size: 17px; } .bottom-nav span { font-size: 10px; } .unit-options { gap: 8px; } .unit-options label { font-size: 13px; padding: 12px 9px; } .back-link { font-size: 13px; } .topbar > .brand { font-size: 20px; } }
