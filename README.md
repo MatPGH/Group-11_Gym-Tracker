@@ -66,7 +66,7 @@ The first version focuses on user accounts, workout routines, workout logging, h
 
 ## Testing the combined project
 
-The Dashboard is at `/` and Profile at `/profile.html`. Profile controls currently update a page preview only; account persistence is scheduled for S1-09. See [the S1-05 guide](docs/S1-05-dashboard-profile.md) for UI checks.
+The Dashboard is at `/` and Profile at `/profile.html`. Profile controls currently update a page preview only; account persistence is scheduled for S1-09.
 
 After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Authentication and routine APIs remain placeholders.
 
