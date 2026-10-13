@@ -1,5 +1,15 @@
-/* S1-05 page styles, isolated from the team's future shared styles.css. */
+/* Dashboard/Profile and account page styles. */
 :root { color-scheme: dark; --bg: #0a0c0b; --panel: #181c19; --border: #30372e; --text: #f4f7ef; --muted: #b0b8aa; --lime: #d0fa31; }
+[hidden] { display: none !important; }
+body[data-auth="loading"] main > :not(#page-status):not(.page-heading) { visibility: hidden; }
+button:disabled, input:disabled { opacity: .6; cursor: wait; }
+a.primary { display: inline-block; }
+.login-shell { max-width: 600px; }
+h1 { overflow-wrap: anywhere; }
+.topbar [data-logout] { white-space: nowrap; flex-shrink: 0; }
+@media(max-width: 540px) { .brand span { font-size: 7px; letter-spacing: 1px; white-space: nowrap; } }
+.settings input[type=email], .settings input[type=password] { display: block; width: 100%; padding: 12px 14px; margin: 10px 0 20px; background: #0d100d; border: 1px solid #56604e; color: var(--text); border-radius: 8px; }
+.settings > label, #signup-fields > label { display: block; margin-top: 16px; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; line-height: 1.5; }
 button, input { font: inherit; }

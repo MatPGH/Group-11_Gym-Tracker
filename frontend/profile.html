@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Profile | Gym Tracker</title>
 <link rel="stylesheet" href="dashboard-profile.css">
+<script src="api.js" defer></script>
 <script src="dashboard-profile.js" defer>
 </script>
 </head>
-<body>
+<body data-auth="loading">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
 <header class="topbar">
@@ -21,11 +22,11 @@
 <h1>Profile</h1>
 <p>Make your training feel like you.</p>
 </div>
-<p class="preview-note">Page preview · Changes apply on this page only and reset when you leave or refresh.</p>
+<p id="page-status" class="status" role="status">Loading your account…</p>
 <section class="profile-card card" aria-label="Profile picture placeholder">
 <div class="avatar" aria-hidden="true">●<span>◡</span>
 </div>
-<h2 id="display-name">Your name</h2>
+<h2 id="display-name" data-user-name>Your name</h2>
 <p>Profile picture placeholder</p>
 <button class="text-button" data-feature="Profile picture">Change picture</button>
 </section>
@@ -47,28 +48,28 @@
 </label>
 </div>
 </fieldset>
-<button type="submit" class="primary">Apply preview</button>
+<button type="submit" class="primary">Save settings</button>
 <p id="profile-status" class="status" role="status" aria-live="polite">
 </p>
 </form>
 <section class="card account" aria-labelledby="account-heading">
 <h2 id="account-heading">Account</h2>
-<button class="account-action" data-feature="Log Out">Log Out <span aria-hidden="true">→</span>
+<button class="account-action" data-logout>Log Out <span aria-hidden="true">→</span>
 </button>
 <button class="account-action danger" data-feature="Delete Account">Delete Account <span aria-hidden="true">→</span>
 </button>
-<p class="field-help">Account actions will be available when account services are connected.</p>
+<p class="field-help">Use Log Out to end your session. Account deletion is not available yet.</p>
 </section>
 </main>
 <nav class="bottom-nav" aria-label="Main navigation">
 <a href="index.html" >⌂<span>Dashboard</span>
 </a>
-<button type="button" data-feature="Start Workout">＋<span>Start Workout</span>
-</button>
-<button type="button" data-feature="Routines">☷<span>Routines</span>
-</button>
-<button type="button" data-feature="View Progress">▥<span>View Progress</span>
-</button>
+<a href="workout.html">＋<span>Start Workout</span>
+</a>
+<a href="routines.html">☷<span>Routines</span>
+</a>
+<a href="progress.html">▥<span>View Progress</span>
+</a>
 </nav>
 </div>
 <dialog id="feature-dialog" aria-labelledby="dialog-title">

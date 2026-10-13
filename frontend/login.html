@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign In | Gym Tracker</title>
+<link rel="stylesheet" href="dashboard-profile.css">
+<script src="api.js" defer></script>
+<script src="login.js" defer></script>
+</head>
+<body>
+<div class="app-shell login-shell">
+<header class="topbar"><span class="brand">Gym Tracker</span></header>
+<main>
+<p class="eyebrow">TRACK, TRAIN, PROGRESS</p>
+<h1 id="auth-heading">Sign In</h1>
+<p>Keep your routines, workouts, and progress in one place.</p>
+<form id="auth-form" class="card settings">
+<div id="signup-fields" hidden>
+<label for="auth-name">Display name</label>
+<input id="auth-name" name="name" type="text" maxlength="60" autocomplete="nickname">
+</div>
+<label for="email">Email</label>
+<input id="email" name="email" type="email" maxlength="254" autocomplete="username" required>
+<label for="password">Password</label>
+<input id="password" name="password" type="password" minlength="8" autocomplete="current-password" required>
+<p class="field-help">Use at least 8 characters.</p>
+<button class="primary" type="submit" id="auth-submit">Sign In</button>
+<p id="auth-status" class="status" role="status" aria-live="polite"></p>
+</form>
+<button class="text-button" id="auth-toggle" type="button">Create an account</button>
+</main>
+</div>
+</body>
+</html>
