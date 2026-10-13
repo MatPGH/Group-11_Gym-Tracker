@@ -44,14 +44,53 @@ Database code (models) can go in `backend/models/` and use `database/schema.sql`
 | Method | Path | Requirement | Status |
 |---|---|---|---|
 | GET | /api/health | - | Done |
-| POST | /api/auth/register | FR-01 | Placeholder (501) |
-| POST | /api/auth/login | FR-02 | Placeholder (501) |
-| POST | /api/auth/logout | FR-03 | Placeholder (501) |
+| POST | /api/auth/register | FR-01 | Done |
+| POST | /api/auth/login | FR-02 | Done |
+| POST | /api/auth/logout | FR-03 | Done |
+| GET | /api/auth/me | FR-02 | Done (current signed-in user) |
 | GET | /api/exercises | FR-05 | Done; run setup first |
 | GET, POST | /api/routines | FR-06 | Placeholder (501) |
 | PUT, DELETE | /api/routines/:id | FR-07, FR-08 | Placeholder (501) |
 
 Placeholder routes return `501 Not Implemented`. To build one, write a controller function and swap it in for `notImplemented` in the matching file in `backend/routes/`.
+
+## Accounts and Sign-In
+
+Sign-in uses a session cookie, so the browser stays signed in automatically. Pages send JSON with `fetch`:
+
+```js
+// Register (name, valid email, password of 8+ characters)
+await fetch('/api/auth/register', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name, email, password })
+});
+
+// Sign in, then the cookie is set for later requests
+await fetch('/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+});
+
+// Who is signed in? 200 { user } or 401 if nobody
+const res = await fetch('/api/auth/me');
+
+// Sign out
+await fetch('/api/auth/logout', { method: 'POST' });
+```
+
+Success responses return `{ "user": { "id", "name", "email", "weightUnit" } }` (logout returns `{ "message" }`). Errors return a status code and `{ "error": "message to show the user" }`:
+
+| Status | Meaning |
+|---|---|
+| 400 | Missing name, invalid email, or password under 8 characters |
+| 401 | Wrong email or password, or not signed in |
+| 409 | Email already registered |
+
+To protect a route with private data, add `requireAuth` from `backend/middleware/requireAuth.js` (for example `router.use(requireAuth)` in a routes file). The signed-in user's id is `req.session.userId`, so queries can be limited to that user's records.
+
+Passwords are hashed with scrypt before they're stored. Set `SESSION_SECRET` in your `.env` (see `.env.example`); without it, everyone is signed out whenever the server restarts.
 
 ## Initial Scope
 
@@ -68,6 +107,6 @@ The first version focuses on user accounts, workout routines, workout logging, h
 
 The Dashboard is at `/` and Profile at `/profile.html`. Profile controls currently update a page preview only; account persistence is scheduled for S1-09.
 
-After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Authentication and routine APIs remain placeholders.
+After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Routine APIs remain placeholders.
 
 To get merged team changes in GitHub Desktop, stop the server, preserve any uncommitted work, switch to `main`, then Fetch origin and Pull origin. Run `npm ci` if dependency files changed, `npm run setup` on a fresh clone, and `npm start`.
