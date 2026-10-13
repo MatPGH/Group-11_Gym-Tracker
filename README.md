@@ -48,6 +48,8 @@ Database code (models) can go in `backend/models/` and use `database/schema.sql`
 | POST | /api/auth/login | FR-02 | Done |
 | POST | /api/auth/logout | FR-03 | Done |
 | GET | /api/auth/me | FR-02 | Done (current signed-in user) |
+| GET, PUT | /api/profile | FR-04, FR-17 | Done; signed-in user's name and lbs/kg preference |
+| GET | /api/dashboard | S1-09 | Done; signed-in user's summary and recent workouts |
 | GET | /api/exercises | FR-05 | Done; run setup first |
 | GET, POST | /api/routines | FR-06 | Placeholder (501) |
 | PUT, DELETE | /api/routines/:id | FR-07, FR-08 | Placeholder (501) |
@@ -105,7 +107,7 @@ The first version focuses on user accounts, workout routines, workout logging, h
 
 ## Testing the combined project
 
-The Dashboard is at `/` and Profile at `/profile.html`. Profile controls currently update a page preview only; account persistence is scheduled for S1-09.
+The Dashboard is at `/`, Profile at `/profile.html`, and Sign In at `/login.html`. Create an account or sign in through the browser. Profile settings save to SQLite and Dashboard loads your own activity counts. Main navigation opens working destinations; separate routine/workout/progress/history features are labeled Coming soon until implemented. See [the S1-09 guide](docs/S1-09-dashboard-profile.md) for scope and checks. Run `npm test` for isolated integration tests.
 
 After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Routine APIs remain placeholders.
 

@@ -15,5 +15,6 @@ router.get('/health', healthController.getHealth);
 router.use('/auth', authRoutes);         // register, login, logout
 router.use('/exercises', exerciseRoutes); // exercise catalog and search
 router.use('/routines', routineRoutes);   // create, edit, delete routines
+router.use('/', require('./accountRoutes')); // authenticated profile and dashboard
 
 module.exports = router;

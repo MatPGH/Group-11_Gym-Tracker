@@ -5,6 +5,7 @@
   "description": "CSCE 3444 Gym Tracker web application",
   "main": "backend/server.js",
   "scripts": {
+    "test": "node --test",
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
     "setup": "node backend/initDatabase.js && node backend/seedExercises.js"
