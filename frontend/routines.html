@@ -1,28 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Routines | Gym Tracker</title>
-<link rel="stylesheet" href="dashboard-profile.css">
-<script src="api.js" defer></script>
-<script src="dashboard-profile.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Routines | Gym Tracker</title>
+    <link rel="stylesheet" href="dashboard-profile.css">
+    <script src="api.js" defer></script>
+    <script src="routines.js" defer></script>
 </head>
-<body data-auth="loading">
-<a class="skip-link" href="#main">Skip to content</a>
-<div class="app-shell">
-<header class="topbar"><a class="brand" href="index.html">Gym Tracker</a><a href="profile.html">Profile</a><button class="text-button" data-logout>Log Out</button></header>
-<main id="main">
-<h1>Routines</h1>
-<p id="page-status" class="status" role="status">Loading your account…</p>
-<section class="card"><h2>Coming soon</h2><p>This feature is scheduled for a separate team task. Your profile settings and Dashboard are ready to use.</p><a class="text-button" href="index.html">Back to Dashboard</a></section>
-</main>
-<nav class="bottom-nav" aria-label="Main navigation">
-<a href="index.html">⌂<span>Dashboard</span></a>
-<a href="workout.html">＋<span>Start Workout</span></a>
-<a href="routines.html" aria-current="page">☷<span>Routines</span></a>
-<a href="progress.html">▥<span>View Progress</span></a>
-</nav>
-</div>
+<body data-auth="ready">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="index.html">Gym Tracker</a>
+            <a href="profile.html">Profile</a>
+            <button class="text-button" data-logout type="button">Log Out</button>
+        </header>
+
+        <main id="main">
+            <section class="routines-heading" aria-labelledby="page-title">
+                <div>
+                    
+                    <h1 id="page-title">Routines</h1>
+                    <p>Organize your exercises and prepare for your next workout.</p>
+                </div>
+
+                <button class="primary" id="open-create-modal" type="button">
+                    + New Routine
+                </button>
+            </section>
+
+            <p id="page-status" class="status" role="status" aria-live="polite"></p>
+
+            <section aria-labelledby="saved-routines-heading">
+                <div class="section-heading">
+                    <h2 id="saved-routines-heading">Your saved routines</h2>
+                    <span class="routine-count" id="routine-count">0 ROUTINES</span>
+                </div>
+
+                <div id="routines-list" class="routine-grid"></div>
+            </section>
+
+            <section id="routine-form-section"
+                     class="card settings routine-form-section"
+                     aria-labelledby="form-title"
+                     hidden>
+                <div class="form-heading">
+                    <div>
+                        <p class="eyebrow">PLAN YOUR WORKOUT</p>
+                        <h2 id="form-title">Create Routine</h2>
+                        <p>Add a name and choose the exercises for your routine.</p>
+                    </div>
+                </div>
+
+                <form id="routine-form">
+                    <input type="hidden" id="routine-id">
+
+                    <label for="routine-name">Routine name</label>
+                    <input type="text"
+                           id="routine-name"
+                           name="name"
+                           maxlength="100"
+                           placeholder="e.g., Push Day"
+                           required>
+
+                    <label for="routine-desc">Description</label>
+                    <input type="text"
+                           id="routine-desc"
+                           name="description"
+                           maxlength="255"
+                           placeholder="Describe your workout (optional)">
+
+                    <div class="exercise-heading">
+                        <div>
+                            <h2>Exercises</h2>
+                            <p class="field-help">Select exercises and set your target sets and reps.</p>
+                        </div>
+                    </div>
+
+                    <div id="selected-exercises-container"></div>
+
+                    <button type="button" class="text-button" id="add-exercise-row">
+                        + Add Exercise
+                    </button>
+
+                    <p id="form-status" class="status" role="status" aria-live="polite"></p>
+
+                    <div class="form-actions">
+                        <button class="primary" type="submit">Save Routine</button>
+                        <button class="text-button" type="button" id="cancel-form">Cancel</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+
+        <nav class="bottom-nav" aria-label="Main navigation">
+            <a href="index.html">⌂<span>Dashboard</span></a>
+            <a href="workout.html">＋<span>Start Workout</span></a>
+            <a href="routines.html" aria-current="page">☷<span>Routines</span></a>
+            <a href="progress.html">▥<span>View Progress</span></a>
+        </nav>
+    </div>
 </body>
 </html>
