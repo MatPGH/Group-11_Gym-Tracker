@@ -2,13 +2,21 @@
 // Trello cards: "Connect Routine pages to the backend - Wasif" and
 // "Make routines save, edit, and delete in SQLite - Taylor"
 const express = require('express');
-const notImplemented = require('../middleware/notImplemented');
+const requireAuth = require('../middleware/requireAuth');
+const routineController = require('../controllers/routineController');
 
 const router = express.Router();
 
-router.get('/', notImplemented);       // list the user's routines
-router.post('/', notImplemented);      // FR-06 create
-router.put('/:id', notImplemented);    // FR-07 edit
-router.delete('/:id', notImplemented); // FR-08 delete
+// Routines are private data: every route needs a signed-in user (FR-02, FR-17).
+router.use(requireAuth);
+router.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
+router.get('/', routineController.listRoutines);           // list my routines
+router.post('/', routineController.createRoutine);         // FR-06 create
+router.put('/:id', routineController.updateRoutine);       // FR-07 edit
+router.delete('/:id', routineController.deleteRoutine);    // FR-08 delete
 
 module.exports = router;
