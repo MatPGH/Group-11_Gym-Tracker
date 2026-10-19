@@ -1,7 +1,7 @@
 
 'use strict';
 
-const USE_SAMPLE_DATA = true; //true while using sample data
+const USE_SAMPLE_DATA = false; //true while using sample data
 
 const pageStatus = document.querySelector('#page-status');
 const routinesList = document.querySelector('#routines-list');
