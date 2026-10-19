@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workout ready | Gym Tracker</title>
+<link rel="stylesheet" href="dashboard-profile.css">
+<link rel="stylesheet" href="workout.css">
+<script src="api.js" defer></script>
+<script src="workout-draft.js" defer></script>
+<script src="active-workout.js" defer></script>
+</head>
+<body data-auth="loading">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app-shell">
+<header class="topbar"><a class="brand" href="index.html">Gym Tracker</a><a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><span aria-hidden="true">☺</span></a><button class="text-button" data-logout type="button">Log Out</button></header>
+<main id="main">
+<div class="page-heading"><p class="eyebrow">YOUR NEXT SESSION</p><h1>Workout ready</h1></div>
+<p id="page-status" class="status" role="status" aria-live="polite">Loading your account…</p>
+<section id="draft-summary" class="card" aria-labelledby="draft-name" hidden>
+<p class="eyebrow" id="draft-mode"></p><h2 id="draft-name"></h2>
+<p id="draft-description"></p><ol id="draft-exercises" class="workout-exercises"></ol>
+<p class="preview-note">Your workout selection is ready. Set logging and finishing workouts are coming soon.</p>
+</section>
+<a class="primary" href="workout.html">Choose a different workout</a>
+</main>
+<nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html">⌂<span>Dashboard</span></a>
+<a href="workout.html" aria-current="page">＋<span>Start Workout</span></a>
+<a href="routines.html">☷<span>Routines</span></a>
+<a href="progress.html">▥<span>View Progress</span></a>
+</nav>
+</div>
+</body>
+</html>

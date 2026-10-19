@@ -5,17 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Start Workout | Gym Tracker</title>
 <link rel="stylesheet" href="dashboard-profile.css">
+<link rel="stylesheet" href="workout.css">
 <script src="api.js" defer></script>
-<script src="dashboard-profile.js" defer></script>
+<script src="workout-draft.js" defer></script>
+<script src="workout.js" defer></script>
 </head>
 <body data-auth="loading">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
-<header class="topbar"><a class="brand" href="index.html">Gym Tracker</a><a href="profile.html">Profile</a><button class="text-button" data-logout>Log Out</button></header>
+<header class="topbar"><a class="brand" href="index.html">Gym Tracker</a><a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><span aria-hidden="true">☺</span></a><button class="text-button" data-logout type="button">Log Out</button></header>
 <main id="main">
-<h1>Start Workout</h1>
-<p id="page-status" class="status" role="status">Loading your account…</p>
-<section class="card"><h2>Coming soon</h2><p>This feature is scheduled for a separate team task. Your profile settings and Dashboard are ready to use.</p><a class="text-button" href="index.html">Back to Dashboard</a></section>
+<div class="page-heading"><p class="eyebrow">YOUR NEXT SESSION</p><h1>Start Workout</h1></div>
+<p id="page-status" class="status" role="status" aria-live="polite">Loading your account…</p>
+<p>Choose how you want to train today.</p>
+<div class="workout-modes" id="workout-modes" role="group" aria-label="Workout type">
+<button type="button" class="card workout-mode" data-mode="routine" aria-pressed="true"><span class="eyebrow">01</span><strong>Saved routine</strong><span>Use a plan you already created.</span></button>
+<button type="button" class="card workout-mode" data-mode="custom" aria-pressed="false"><span class="eyebrow">02</span><strong>Custom workout</strong><span>Pick exercises just for today.</span></button>
+<button type="button" class="card workout-mode" data-mode="empty" aria-pressed="false"><span class="eyebrow">03</span><strong>Empty workout</strong><span>Start with a blank workout.</span></button>
+</div>
+<section id="routine-panel" aria-labelledby="routine-heading">
+<div class="section-heading"><h2 id="routine-heading">Choose a saved routine</h2><a class="text-button" href="routines.html">Manage routines</a></div>
+<p id="routine-status" class="field-help" role="status">Loading your routines…</p>
+<div id="workout-routines" class="routine-grid"></div>
+</section>
+<section id="custom-panel" aria-labelledby="custom-heading" hidden>
+<h2 id="custom-heading">Build today's workout</h2>
+<p>This selection is for one session. It won't change your saved routines.</p>
+<label for="workout-name">Workout name (optional)</label>
+<input type="text" id="workout-name" maxlength="100" placeholder="e.g., Monday strength">
+<label for="exercise-search" class="search-label">Search exercises</label>
+<input type="search" id="exercise-search" placeholder="Name, muscle group, or equipment">
+<p id="catalog-status" class="field-help" role="status">Loading exercises…</p>
+<div id="workout-catalog" class="workout-catalog"></div>
+</section>
+<section id="empty-panel" class="card" aria-labelledby="empty-heading" hidden>
+<h2 id="empty-heading">A fresh start</h2><p>Your workout will begin without a routine or any exercises selected.</p>
+</section>
+<section class="card workout-preview" aria-labelledby="preview-heading">
+<p class="eyebrow">YOUR SELECTION</p><h2 id="preview-heading">Choose a routine to continue</h2>
+<p id="preview-detail">Your exercises and targets will appear here.</p>
+<ol id="preview-exercises" class="workout-exercises"></ol>
+<button type="button" class="primary" id="continue-workout" disabled>Continue to workout</button>
+<p class="field-help">You'll review your selection next. Set logging and finishing workouts are coming soon.</p>
+</section>
+<button type="button" class="text-button" id="reload-options" hidden>Reload workout choices</button>
 </main>
 <nav class="bottom-nav" aria-label="Main navigation">
 <a href="index.html">⌂<span>Dashboard</span></a>

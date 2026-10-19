@@ -1,0 +1,23 @@
+/* Workout selection and the handoff preview share the app's dark/lime theme. */
+.workout-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 26px 0; }
+.workout-mode { font: inherit; color: var(--text); text-align: left; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.workout-mode strong { font-size: 19px; }
+.workout-mode > span:last-child { font-size: 14px; color: var(--muted); }
+.workout-mode[aria-pressed=true], .workout-choice[aria-pressed=true] { border-color: var(--lime); background: #222d16; }
+.workout-choice { font: inherit; color: var(--text); text-align: left; width: 100%; min-width: 0; }
+.workout-choice strong { display: block; font-size: 20px; overflow-wrap: anywhere; }
+.workout-choice span { display: block; color: var(--muted); font-size: 14px; margin-top: 8px; overflow-wrap: anywhere; }
+.workout-preview h2, #draft-name { overflow-wrap: anywhere; }
+.workout-exercises { padding-left: 24px; }
+.workout-exercises li { margin-bottom: 12px; overflow-wrap: anywhere; }
+.workout-exercises span { display: block; color: var(--muted); font-size: 14px; }
+#custom-panel input[type=search] { display: block; width: 100%; margin-top: 10px; padding: 12px 14px; background: #0d100d; border: 1px solid #56604e; color: var(--text); border-radius: 8px; font: inherit; }
+.search-label { display: block; margin-top: 20px; }
+.workout-catalog { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-height: 360px; overflow-y: auto; padding: 6px; }
+.catalog-exercise { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; min-width: 0; cursor: pointer; }
+.catalog-exercise:has(input:checked) { border-color: var(--lime); background: #222d16; }
+.catalog-exercise input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--lime); }
+.catalog-exercise span { min-width: 0; overflow-wrap: anywhere; }
+.catalog-exercise small { display: block; color: var(--muted); }
+#draft-summary + .primary { margin-top: 24px; }
+@media (max-width: 600px) { .workout-modes, .workout-catalog { grid-template-columns: 1fr; } .workout-mode { gap: 4px; padding: 16px; } .workout-mode .eyebrow { margin: 0; } }

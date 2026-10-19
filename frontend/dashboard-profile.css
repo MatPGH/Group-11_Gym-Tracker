@@ -22,7 +22,7 @@ button:hover, a:hover { filter: brightness(1.12); }
 .topbar { min-height: 96px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); gap: 16px; }
 .brand { font-size: 22px; font-weight: 800; color: var(--lime); }
 .brand span { display: block; color: var(--muted); font-size: 9px; letter-spacing: 2px; }
-.profile-link { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid var(--border); border-radius: 50%; font-size: 28px; }
+.profile-link { flex-shrink: 0; display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid var(--border); border-radius: 50%; font-size: 28px; }
 .back-link { font-size: 14px; padding: 12px 0; }
 main { padding: 32px 0 125px; }
 h1, h2, p { margin-top: 0; }
@@ -131,3 +131,4 @@ dialog::backdrop { background: #000b; }
 .routine-edit-button:hover { border-color: var(--lime); background: #29351c; }
 .routine-start-button:hover, .routine-edit-button:hover { opacity: 0.9; }
 .routine-card-actions button:active { transform: scale(0.98); }
+.profile-link > span { line-height: 1; }

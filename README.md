@@ -134,8 +134,31 @@ The first version focuses on user accounts, workout routines, workout logging, h
 
 ## Testing the combined project
 
-The Dashboard is at `/`, Profile at `/profile.html`, and Sign In at `/login.html`. Create an account or sign in through the browser. Profile settings save to SQLite and Dashboard loads your own activity counts. Routines supports creating, editing, and deleting saved routines. Workout, Progress, and History remain Coming soon until implemented. Run `npm test` for isolated integration tests.
+The Dashboard is at `/`, Profile at `/profile.html`, and Sign In at `/login.html`. Create an account or sign in through the browser. Profile settings save to SQLite and Dashboard loads your own activity counts. Routines supports creating, editing, and deleting saved routines. Start Workout offers a saved routine, custom workout, or empty workout. Progress and History remain Coming soon until implemented. Run `npm test` for isolated integration tests.
 
 After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Routine routes check sign-in, ownership, and input, and persist routines and their ordered exercise targets in SQLite.
 
 To get merged team changes in GitHub Desktop, stop the server, preserve any uncommitted work, switch to `main`, then Fetch origin and Pull origin. Run `npm ci` if dependency files changed, `npm run setup` on a fresh clone, and `npm start`.
+
+## Starting a workout
+
+Open `/workout.html`, choose a saved routine, select exercises for a one-session custom workout, or choose an empty workout. Review the exercise targets, then Continue to workout. Start Routine on the Routines page opens the same selector with that routine selected. The header Profile icon is consistent on Dashboard, Routines, Start Workout, the workout preview, Progress, and History.
+
+The next page (`/active-workout.html`) currently previews the selection; logging sets and finishing/saving workouts are separate team tasks. No workout history record is created by this selection step.
+
+### Workout handoff for the logging page
+
+`frontend/workout-draft.js` writes a temporary per-tab `sessionStorage` entry named `gymTracker.workoutDraft`. Its version-1 shape is:
+
+```js
+{
+  version: 1, userId: 1, mode: 'routine', // 'routine', 'custom', or 'empty'
+  name: 'Push Day', routineId: 3, // null for custom/empty
+  exercises: [{ exercise_id: 1, name: 'Bench Press',
+    target_sets: 3, target_reps: 10, exercise_order: 1 }]
+}
+```
+
+Custom selections use initial targets of 3 sets and 10 reps. Empty selections have no exercises. Saved routines retain their ordered targets and are fetched again before the handoff. Continuing replaces the previous selection in this tab. The preview rechecks the authenticated user and clears invalid or other-account drafts. This is temporary UI state; future workout APIs must revalidate ownership, exercise IDs, and values on the server and persist finished sessions in SQLite.
+
+For manual testing, try all three choices, edit a saved routine and choose it again, test the no-routines state with a new account, search for an exercise with no matches, and verify Profile icons at desktop and 360 px widths.

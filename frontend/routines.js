@@ -428,6 +428,7 @@ routinesList.addEventListener('click', async event => {
     }
 
     if (startButton) {
+        location.href = `workout.html?routine=${encodeURIComponent(startButton.dataset.startRoutine)}`;
         return;
     }
 
