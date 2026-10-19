@@ -1,250 +1,129 @@
-// Routine model: the SQLite code for routines lives here (the "M" in MVC).
-// Trello card: "Make routines save, edit, and delete in SQLite - Taylor"
-//
-// The routes and controller (Wasif's card) are finished and call the five
-// functions below. Each one currently answers "501 not connected yet". Replace
-// the body of each function with the real SQL; nothing else needs to change.
-//
-// Data the controller passes in (already checked and cleaned):
-//   userId       number, the signed-in user (req.session.userId)
-//   routineId    number
-//   data = {
-//     name:        string, 1-100 characters
-//     description: string, may be ''
-//     exercises:   [{ exerciseId, targetSets, targetReps, order }]   (1 or more, order starts at 1)
-//   }
-//
-// Each routine you return should look like this (Laura's page reads these names):
-//   {
-//     id, userId, name, description,
-//     exercises: [{ exercise_id, name, target_sets, target_reps, exercise_order }]
-//   }
-//   - exercises sorted by exercise_order; `name` comes from the exercises table
-//   - userId is used for the owner check and is never sent to the browser
-//
-// Tables: routines (id, user_id, name, description) and
-//         routine_exercises (routine_id, exercise_id, target_sets, target_reps, exercise_order)
+// SQLite persistence for personal routines. Each write owns its connection so
+// concurrent requests cannot join or roll back another request's transaction.
+const sqlite3 = require('sqlite3');
 const db = require('../database');
 
-function runSql(sql, params = []) {
+function runSql(connection, sql, params = []) {
   return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({
-          lastID: this.lastID,
-          changes: this.changes
-        });
-      }
+    connection.run(sql, params, function (err) {
+      if (err) reject(err);
+      else resolve({ lastID: this.lastID, changes: this.changes });
     });
   });
 }
 
-function getExercises(routineId) {
+function getExercises(routineId, connection = db) {
   return new Promise((resolve, reject) => {
-    db.all(
+    connection.all(
       `SELECT re.exercise_id, e.name, re.target_sets, re.target_reps, re.exercise_order
-       FROM routine_exercises re
-       JOIN exercises e ON re.exercise_id = e.id
-       WHERE re.routine_id = ?
-       ORDER BY re.exercise_order`,
-      [routineId],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }  
+       FROM routine_exercises re JOIN exercises e ON re.exercise_id = e.id
+       WHERE re.routine_id = ? ORDER BY re.exercise_order`,
+      [routineId], (err, rows) => err ? reject(err) : resolve(rows)
     );
   });
 }
 
-// All of one user's routines, newest first. Return [] if they have none.
-function listByUser(userId) {
-  return new Promise((resolve, reject) => {
+async function listByUser(userId) {
+  const rows = await new Promise((resolve, reject) => {
     db.all(
-      `SELECT id, user_id AS userId, name, description
-       FROM routines
-       WHERE user_id = ?
-       ORDER BY id DESC`,
-      [userId],
-      async (err, rows) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        try {
-          const routines = await Promise.all(
-            rows.map(async (routine) => {
-              routine.exercises = await getExercises(routine.id);
-              return routine;
-            })
-          );
-
-          resolve(routines);
-        } catch (err) {
-          reject(err);
-        }
-      }
+      'SELECT id, user_id AS userId, name, description FROM routines WHERE user_id = ? ORDER BY id DESC',
+      [userId], (err, rows) => err ? reject(err) : resolve(rows)
     );
   });
+  return Promise.all(rows.map(async routine => ({
+    ...routine, exercises: await getExercises(routine.id)
+  })));
 }
 
-// One routine by id (any owner), or null if it doesn't exist.
-// The controller compares routine.userId with the signed-in user.
-function findById(routineId) {
-  return new Promise((resolve, reject) => {
-    db.get(
-      `SELECT id, user_id AS userId, name, description
-       FROM routines
-       WHERE id = ?`,
-      [routineId],
-      async (err, routine) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        if (!routine) {
-          resolve(null);
-          return;
-        }
-
-        try {
-          routine.exercises = await getExercises(routine.id);
-          resolve(routine);
-        } catch (err) {
-          reject(err);
-        }
-      }
+async function findById(routineId, connection = db) {
+  const routine = await new Promise((resolve, reject) => {
+    connection.get(
+      'SELECT id, user_id AS userId, name, description FROM routines WHERE id = ?',
+      [routineId], (err, row) => err ? reject(err) : resolve(row)
     );
   });
+  return routine ? { ...routine, exercises: await getExercises(routineId, connection) } : null;
 }
 
-// Insert the routine and its exercises, then return the saved routine.
-// If an exerciseId doesn't exist in the exercises table, throw an error
-// with err.status = 400 and a message like "One of the exercises doesn't exist."
-async function create(userId, data) {
-  await runSql('BEGIN TRANSACTION');
+// Queue routine writes to avoid blocking SQLite's worker pool on competing locks.
+let pendingWrite = Promise.resolve();
+function transaction(work) {
+  const next = pendingWrite.then(() => runTransaction(work));
+  pendingWrite = next.catch(() => {});
+  return next;
+}
 
+async function runTransaction(work) {
+  const connection = await new Promise((resolve, reject) => {
+    const opened = new sqlite3.Database(db.filename, err => err ? reject(err) : resolve(opened));
+  });
+  connection.configure('busyTimeout', 5000);
+  let begun = false;
   try {
-    const result = await runSql(
+    await runSql(connection, 'PRAGMA foreign_keys = ON');
+    // Acquire the write lock before reading, avoiding deferred lock upgrades.
+    await runSql(connection, 'BEGIN IMMEDIATE');
+    begun = true;
+    const result = await work(connection);
+    await runSql(connection, 'COMMIT');
+    begun = false;
+    return result;
+  } catch (err) {
+    if (begun) await runSql(connection, 'ROLLBACK').catch(() => {});
+    if (err.message.includes('FOREIGN KEY constraint failed')) {
+      err.status = 400;
+      err.message = "One of the exercises doesn't exist.";
+    }
+    throw err;
+  } finally {
+    await new Promise((resolve, reject) => connection.close(err => err ? reject(err) : resolve()));
+  }
+}
+
+async function insertExercises(connection, routineId, exercises) {
+  for (const exercise of exercises) {
+    await runSql(connection,
+      `INSERT INTO routine_exercises
+       (routine_id, exercise_id, target_sets, target_reps, exercise_order)
+       VALUES (?, ?, ?, ?, ?)`,
+      [routineId, exercise.exerciseId, exercise.targetSets, exercise.targetReps, exercise.order]
+    );
+  }
+}
+
+function create(userId, data) {
+  return transaction(async connection => {
+    const result = await runSql(connection,
       'INSERT INTO routines (user_id, name, description) VALUES (?, ?, ?)',
-      [userId, data.name, data.description]
-    );
-
-    const routineId = result.lastID;
-
-    for (const exercise of data.exercises) {
-      await runSql(
-        `INSERT INTO routine_exercises
-         (routine_id, exercise_id, target_sets, target_reps, exercise_order)
-         VALUES (?, ?, ?, ?, ?)`,
-        [
-          routineId,
-          exercise.exerciseId,
-          exercise.targetSets,
-          exercise.targetReps,
-          exercise.order
-        ]
-      );
-    }
-
-    await runSql('COMMIT');
-
-    return await findById(routineId);
-  } catch (err) {
-    await runSql('ROLLBACK').catch(() => {});
-
-    if (err.message.includes('FOREIGN KEY constraint failed')) {
-      err.status = 400;
-      err.message = "One of the exercises doesn't exist.";
-    }
-
-    throw err;
-  }
+      [userId, data.name, data.description]);
+    await insertExercises(connection, result.lastID, data.exercises);
+    return findById(result.lastID, connection);
+  });
 }
 
-// Replace the routine's name, description, and full exercise list
-// (simplest: delete its routine_exercises rows and insert the new ones),
-// then return the saved routine. Same 400 rule for unknown exercises.
-async function update(routineId, data) {
-  await runSql('BEGIN TRANSACTION');
-
-  try {
-    const routine = await findById(routineId);
-    if (!routine) {
-      throw new Error('Routine not found.');
+function update(routineId, data) {
+  return transaction(async connection => {
+    const existing = await findById(routineId, connection);
+    if (!existing) {
+      const err = new Error('Routine not found.');
+      err.status = 404;
+      throw err;
     }
-    
-    await runSql(
-      'UPDATE routines SET name = ?, description = ? WHERE id = ?',
-      [data.name, data.description, routineId]
-    );
-
-    await runSql(
-      'DELETE FROM routine_exercises WHERE routine_id = ?',
-      [routineId]
-    );
-
-    for (const exercise of data.exercises) {
-      await runSql(
-        `INSERT INTO routine_exercises
-         (routine_id, exercise_id, target_sets, target_reps, exercise_order)
-         VALUES (?, ?, ?, ?, ?)`,
-        [
-          routineId,
-          exercise.exerciseId,
-          exercise.targetSets,
-          exercise.targetReps,
-          exercise.order
-        ]
-      );
-    }
-
-    await runSql('COMMIT');
-
-    return await findById(routineId);
-  } catch (err) {
-    await runSql('ROLLBACK').catch(() => {});
-
-    if (err.message.includes('FOREIGN KEY constraint failed')) {
-      err.status = 400;
-      err.message = "One of the exercises doesn't exist.";
-    }
-
-    throw err;
-  }
+    await runSql(connection, 'UPDATE routines SET name = ?, description = ? WHERE id = ?',
+      [data.name, data.description, routineId]);
+    await runSql(connection, 'DELETE FROM routine_exercises WHERE routine_id = ?', [routineId]);
+    await insertExercises(connection, routineId, data.exercises);
+    return findById(routineId, connection);
+  });
 }
 
-// Delete the routine and its routine_exercises rows.
-// FR-08: past workouts must stay saved. workouts.routine_id points at the
-// routine, so first run: UPDATE workouts SET routine_id = NULL WHERE routine_id = ?
-// (otherwise the foreign key blocks the delete).
-async function remove(routineId) {
-  await runSql('BEGIN TRANSACTION');
-
-  try {
-    await runSql(
-      'UPDATE workouts SET routine_id = NULL WHERE routine_id = ?',
-      [routineId]
-    );
-
-    await runSql(
-      'DELETE FROM routine_exercises WHERE routine_id = ?',
-      [routineId]
-    );
-
-    await runSql(
-      'DELETE FROM routines WHERE id = ?',
-      [routineId]
-    );
-
-    await runSql('COMMIT');
-  } catch (err) {
-    await runSql('ROLLBACK').catch(() => {});
-    throw err;
-  }
+function remove(routineId) {
+  return transaction(async connection => {
+    // Historical workouts and their sets survive deletion of their template.
+    await runSql(connection, 'UPDATE workouts SET routine_id = NULL WHERE routine_id = ?', [routineId]);
+    await runSql(connection, 'DELETE FROM routine_exercises WHERE routine_id = ?', [routineId]);
+    await runSql(connection, 'DELETE FROM routines WHERE id = ?', [routineId]);
+  });
 }
 
 module.exports = { listByUser, findById, create, update, remove };

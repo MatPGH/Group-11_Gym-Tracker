@@ -51,8 +51,8 @@ Database code (models) can go in `backend/models/` and use `database/schema.sql`
 | GET, PUT | /api/profile | FR-04, FR-17 | Done; signed-in user's name and lbs/kg preference |
 | GET | /api/dashboard | - | Done; signed-in user's summary and recent workouts |
 | GET | /api/exercises | FR-05 | Done; run setup first |
-| GET, POST | /api/routines | FR-06 | Routes done (sign-in, owner checks, validation); saving waits on `routineModel.js` (501 until then) |
-| PUT, DELETE | /api/routines/:id | FR-07, FR-08 | Same as above |
+| GET, POST | /api/routines | FR-06 | Implemented; signed-in user's routines stored in SQLite |
+| PUT, DELETE | /api/routines/:id | FR-07, FR-08 | Implemented; owner-only edits/deletes; historical workouts preserved |
 
 Placeholder routes return `501 Not Implemented`. To build one, write a controller function and swap it in for `notImplemented` in the matching file in `backend/routes/`.
 
@@ -119,7 +119,7 @@ Rules (FR-18): name 1-100 characters, description up to 255, 1-30 exercises, set
 
 Each routine comes back as `{ id, name, description, exercises: [{ exercise_id, name, target_sets, target_reps, exercise_order }] }`.
 
-The database part lives in `backend/models/routineModel.js`; its comments describe what each function must do. Once it's connected, set `USE_SAMPLE_DATA = false` at the top of `frontend/routines.js` so the page uses real data.
+The SQLite implementation lives in `backend/models/routineModel.js`. The Routines page uses the real API (`USE_SAMPLE_DATA = false`). Routine writes run sequentially on dedicated transaction connections so simultaneous saves cannot overlap transactions.
 
 ## Initial Scope
 
@@ -134,8 +134,8 @@ The first version focuses on user accounts, workout routines, workout logging, h
 
 ## Testing the combined project
 
-The Dashboard is at `/`, Profile at `/profile.html`, and Sign In at `/login.html`. Create an account or sign in through the browser. Profile settings save to SQLite and Dashboard loads your own activity counts. Main navigation opens working destinations; separate routine/workout/progress/history features are labeled Coming soon until implemented. Run `npm test` for isolated integration tests.
+The Dashboard is at `/`, Profile at `/profile.html`, and Sign In at `/login.html`. Create an account or sign in through the browser. Profile settings save to SQLite and Dashboard loads your own activity counts. Routines supports creating, editing, and deleting saved routines. Workout, Progress, and History remain Coming soon until implemented. Run `npm test` for isolated integration tests.
 
-After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Routine routes check sign-in, ownership, and input, but answer `501` until `backend/models/routineModel.js` is connected to SQLite.
+After database setup, `/api/exercises` returns the exercise catalog. Try `/api/exercises?name=bench`, `/api/exercises?muscle=Chest`, or `/api/exercises?equipment=Barbell`. Filters can be combined. Routine routes check sign-in, ownership, and input, and persist routines and their ordered exercise targets in SQLite.
 
 To get merged team changes in GitHub Desktop, stop the server, preserve any uncommitted work, switch to `main`, then Fetch origin and Pull origin. Run `npm ci` if dependency files changed, `npm run setup` on a fresh clone, and `npm start`.
