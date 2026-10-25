@@ -21,9 +21,8 @@ Or select **Code → Download ZIP** on [GitHub](https://github.com/MatPGH/Group-
 ## Run locally
 
 1. Install dependencies: `npm ci`
-2. Copy `.env.example` to a new file named `.env` in the same folder. Keep `PORT=3000` and replace `SESSION_SECRET` with a long random string.
-3. Create the database and load exercises: `npm run setup`
-4. Start the app: `npm start`
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+2. Create the database and load exercises: `npm run setup`
+3. Start the app: `npm start`
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 Keep the terminal open while using the app. Press **Ctrl+C** to stop it.
