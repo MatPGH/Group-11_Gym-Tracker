@@ -6,6 +6,7 @@ const healthController = require('../controllers/healthController');
 const authRoutes = require('./authRoutes');
 const exerciseRoutes = require('./exerciseRoutes');
 const routineRoutes = require('./routineRoutes');
+const workoutRoutes = require('./workoutRoutes');
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.get('/health', healthController.getHealth);
 router.use('/auth', authRoutes);         // register, login, logout
 router.use('/exercises', exerciseRoutes); // exercise catalog and search
 router.use('/routines', routineRoutes);   // create, edit, delete routines
+router.use('/workouts', workoutRoutes);  // start workouts, manage workout history
 router.use('/', require('./accountRoutes')); // authenticated profile and dashboard
 
 module.exports = router;
