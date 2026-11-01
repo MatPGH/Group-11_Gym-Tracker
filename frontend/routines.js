@@ -1,7 +1,7 @@
 
 'use strict';
 
-const USE_SAMPLE_DATA = false; //true while using sample data
+const USE_SAMPLE_DATA = false;
 
 const pageStatus = document.querySelector('#page-status');
 const routinesList = document.querySelector('#routines-list');
@@ -23,7 +23,6 @@ let exerciseCatalog = [];
 
 let routines = [];
 
-/*sample data. PLaceholder until backend is connected*/
 
 const sampleExercises = [
     { id: '1', name: 'Bench Press' },
@@ -508,7 +507,6 @@ form.addEventListener('submit', async event => {
     try {
         if (USE_SAMPLE_DATA) {
 
-            // Sample data saving. Set to false when using database instead
             const savedRoutine = {
                 id: routineId.value || `sample-${Date.now()}`,
                 name,
@@ -583,7 +581,6 @@ document.querySelectorAll('[data-logout]').forEach(button => {
 
 async function initializePage() {
     if (USE_SAMPLE_DATA) {
-       //Sample data. Set to false when using database instead
 
         exerciseCatalog = sampleExercises;
         routines = sampleRoutines;

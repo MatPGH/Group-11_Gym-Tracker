@@ -69,7 +69,6 @@ function renderRoutines() {
       if (busy) return;
       selectedRoutineId = routine.id;
       renderRoutines();
-      // Keep keyboard focus on the chosen card after rendering.
       const index = routines.findIndex(item => item.id === selectedRoutineId);
       routineList.children[index].focus();
       pageStatus.textContent = 'Selected ' + routine.name + '. Review your selection below.';
@@ -144,7 +143,6 @@ continueButton.addEventListener('click', async () => {
       return;
     }
     if (chosenMode === 'routine') {
-      // Refresh targets and ownership in case this routine changed in another tab.
       const fresh = await gymApi('/routines');
       const routine = fresh.routines.find(item => item.id === choice.routineId);
       if (!routine) throw new Error('That routine is no longer available. Reload your workout choices.');
@@ -152,6 +150,7 @@ continueButton.addEventListener('click', async () => {
     }
     const draft = createWorkoutDraft(user.id, chosenMode, choice.name, choice.routineId, choice.exercises);
     saveWorkoutDraft(draft);
+    sessionStorage.removeItem('gymTracker.activeWorkout');
     location.href = 'active-workout.html';
   } catch (error) {
     pageStatus.textContent = error.message;
@@ -164,7 +163,7 @@ continueButton.addEventListener('click', async () => {
     const data = await gymApi('/profile');
     user = data.user;
     pageStatus.textContent = '';
-    readWorkoutDraft(user.id); // Discard stale or other-account selections.
+    readWorkoutDraft(user.id);
     const results = await Promise.allSettled([gymApi('/routines'), gymApi('/exercises')]);
     const routineResult = results[0];
     if (routineResult.status === 'fulfilled' && Array.isArray(routineResult.value.routines)) {

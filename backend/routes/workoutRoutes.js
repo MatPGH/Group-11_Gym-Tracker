@@ -1,4 +1,3 @@
-
 const express = require('express');
 const requireAuth = require('../middleware/requireAuth');
 const workoutController = require('../controllers/workoutController');
@@ -13,7 +12,10 @@ router.use((req, res, next) => {
 
 router.post('/', workoutController.startWorkout);
 router.post('/:id/sets', workoutController.addSet);
+router.put('/:id/sets/:setId', workoutController.updateSet);
 router.get('/', workoutController.listHistory);
 router.post('/:id/finish', workoutController.finishWorkout);
 router.get('/:id', workoutController.getWorkoutDetails);
+
 module.exports = router;
+
