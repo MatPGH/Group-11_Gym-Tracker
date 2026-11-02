@@ -1,35 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Workout ready | Gym Tracker</title>
-<link rel="stylesheet" href="dashboard-profile.css">
-<link rel="stylesheet" href="workout.css">
-<script src="api.js" defer></script>
-<script src="workout-draft.js" defer></script>
-<script src="active-workout.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Active Workout | Gym Tracker</title>
+  <link rel="stylesheet" href="dashboard-profile.css">
+  <link rel="stylesheet" href="workout.css">
+  <script src="api.js" defer></script>
+  <script src="workout-draft.js" defer></script>
+  <script src="active-workout.js" defer></script>
 </head>
 <body data-auth="loading">
-<a class="skip-link" href="#main">Skip to content</a>
-<div class="app-shell">
-<header class="topbar"><a class="brand" href="index.html">Gym Tracker</a><a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><span aria-hidden="true">☺</span></a><button class="text-button" data-logout type="button">Log Out</button></header>
-<main id="main">
-<div class="page-heading"><p class="eyebrow">YOUR NEXT SESSION</p><h1>Workout ready</h1></div>
-<p id="page-status" class="status" role="status" aria-live="polite">Loading your account…</p>
-<section id="draft-summary" class="card" aria-labelledby="draft-name" hidden>
-<p class="eyebrow" id="draft-mode"></p><h2 id="draft-name"></h2>
-<p id="draft-description"></p><ol id="draft-exercises" class="workout-exercises"></ol>
-<p class="preview-note">Your workout selection is ready. Set logging and finishing workouts are coming soon.</p>
-</section>
-<a class="primary" href="workout.html">Choose a different workout</a>
-</main>
-<nav class="bottom-nav" aria-label="Main navigation">
-<a href="index.html">⌂<span>Dashboard</span></a>
-<a href="workout.html" aria-current="page">＋<span>Start Workout</span></a>
-<a href="routines.html">☷<span>Routines</span></a>
-<a href="progress.html">▥<span>View Progress</span></a>
-</nav>
-</div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">Gym Tracker</a>
+      <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile">
+        <span aria-hidden="true">☺</span>
+      </a>
+      <button class="text-button" data-logout type="button">Log Out</button>
+    </header>
+
+    <main id="main">
+      <div class="page-heading">
+        <p class="eyebrow">YOUR SESSION</p>
+        <h1 id="workout-name">Active Workout</h1>
+      </div>
+
+      <p id="page-status" class="status" role="status" aria-live="polite">Loading your workout…</p>
+
+      <section id="workout-content" hidden aria-label="Workout logging">
+        <div class="active-workout-summary card">
+          <div>
+            <p class="eyebrow">WORKOUT PROGRESS</p>
+            <p id="workout-progress" class="workout-progress">0 of 0 sets completed</p>
+          </div>
+          <div class="progress-track" role="progressbar" aria-label="Workout completion"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-track">
+            <span id="progress-fill"></span>
+          </div>
+          <p id="workout-description" class="field-help"></p>
+        </div>
+
+        <div id="active-exercises" class="active-exercises"></div>
+
+        <section id="empty-workout-builder" class="card" hidden>
+          <h2>Build your workout</h2>
+          <p>Choose exercises, then enter the weight and reps for each set.</p>
+          <div id="empty-exercises" class="empty-exercises"></div>
+          <button type="button" class="text-button" id="add-empty-exercise">
+            + Add Exercise
+          </button>
+        </section>
+
+        <div class="finish-workout-panel card">
+          <div>
+            <h2>Finished for today?</h2>
+            <p class="field-help">You'll be able to log your sets and track your workout progress.</p>
+          </div>
+          <button id="finish-workout" class="primary" type="button">Finish Workout</button>
+        </div>
+      </section>
+
+      <p id="workout-error" class="status" role="alert"></p>
+      <a class="text-button active-back-link" href="workout.html">← Back to workout selection</a>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <a href="index.html">⌂<span>Dashboard</span></a>
+      <a href="workout.html" aria-current="page">＋<span>Start Workout</span></a>
+      <a href="routines.html">☷<span>Routines</span></a>
+      <a href="progress.html">▥<span>View Progress</span></a>
+    </nav>
+  </div>
 </body>
 </html>

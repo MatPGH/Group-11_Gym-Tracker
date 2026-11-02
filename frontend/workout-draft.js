@@ -9,7 +9,7 @@ function createWorkoutDraft(userId, mode, name, routineId, exercises) {
     throw new Error('Use a workout name of 1–100 characters.');
   }
   if (!Array.isArray(exercises) || exercises.length > 30 ||
-      (mode === 'empty' ? exercises.length !== 0 : exercises.length === 0) ||
+      (mode !== 'empty' && exercises.length === 0) ||
       (mode === 'routine' ? !Number.isSafeInteger(routineId) || routineId < 1 : routineId !== null)) {
     throw new Error('Choose a valid workout and exercise list.');
   }
