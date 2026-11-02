@@ -36,6 +36,7 @@ app.use(session({
 
 // Serve the front-end pages (HTML/CSS/JS) from /frontend.
 // Uses an absolute path so the server works no matter which folder you start it from.
+app.get('/history.html', (req, res) => res.redirect(302, '/progress.html#workout-history'));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // All backend endpoints live under /api.

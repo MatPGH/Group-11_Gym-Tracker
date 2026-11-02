@@ -172,4 +172,18 @@ test('workout logging and Finish Workout with real SQLite', async t => {
     assert.deepEqual(details.body.workout.sets, []);
     assert.ok(details.body.workout.end_time);
   });
+
+  await t.test('combined Progress history contains only the owner\'s finished workouts and completed sets', async () => {
+    assert.equal((await request('/api/workouts/history')).status, 401);
+    const result = await request('/api/workouts/history', 'GET', undefined, alice);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.workouts.length, 2, 'unfinished Alice workouts and Bob workouts stay out');
+    assert.ok(result.body.workouts.every(w => w.end_time));
+    const logged = result.body.workouts.find(w => w.id === workout.id);
+    assert.deepEqual(logged.sets.map(s => [s.exercise_name, s.weight, s.reps]), [['Bench', 135, 8], ['Bench', 145, 8]]);
+    const bobResult = await request('/api/workouts/history', 'GET', undefined, bob);
+    assert.equal(bobResult.body.workouts.length, 1);
+    assert.deepEqual(bobResult.body.workouts[0].sets, []);
+    assert.ok(!bobResult.body.workouts.some(w => w.id === workout.id));
+  });
 });

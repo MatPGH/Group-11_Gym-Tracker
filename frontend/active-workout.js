@@ -9,6 +9,8 @@ const finishButton = document.querySelector('#finish-workout');
 const emptyWorkoutBuilder = document.querySelector('#empty-workout-builder');
 const emptyExerciseSelect = document.querySelector('#empty-exercise-select');
 const addEmptyExerciseButton = document.querySelector('#add-empty-exercise');
+const finishDialog = document.querySelector('#finish-dialog');
+const setSavers = new Map();
 
 // Exercises added to an empty workout start with one set of 10 reps.
 const EMPTY_WORKOUT_START = { targetSets: 1, targetReps: 10 };
@@ -21,6 +23,7 @@ let workoutDraft = null;
 let workoutDetails = null;
 let pendingSaves = 0;
 let finishing = false;
+let preparingFinish = false;
 let addingSet = false; // stops a double tap on "+ Add Set" from saving two copies
 
 function setPageError(message) {
@@ -116,7 +119,7 @@ function fillExercisePicker() {
 
 // Adds the chosen exercise and saves its first set right away.
 async function addExerciseToEmptyWorkout() {
-  if (pendingSaves > 0 || finishing) return;
+  if (pendingSaves > 0 || finishing || addingSet || preparingFinish) return;
 
   const exercise = exerciseCatalog.find(item => item.id === Number(emptyExerciseSelect.value));
   if (!exercise) {
@@ -125,6 +128,8 @@ async function addExerciseToEmptyWorkout() {
     return;
   }
 
+  addingSet = true;
+  if (!await saveVisibleSets()) { addingSet = false; return; }
   pendingSaves++;
   finishButton.disabled = true;
   addEmptyExerciseButton.disabled = true;
@@ -163,6 +168,7 @@ async function addExerciseToEmptyWorkout() {
     setPageError(`Could not add that exercise. ${error.message}`);
   } finally {
     pendingSaves--;
+    addingSet = false;
     addEmptyExerciseButton.disabled = false;
     finishButton.disabled = pendingSaves > 0 || finishing;
   }
@@ -210,6 +216,7 @@ function renderWorkout() {
         : 'No exercises were selected for this session.';
 
   exerciseContainer.replaceChildren();
+  setSavers.clear();
 
   const unit = currentUser.weightUnit || 'lbs';
 
@@ -329,20 +336,30 @@ function createSetRow(set) {
 
   row.append(numberCell, weightCell, repsCell, completeCell);
 
-  const save = async () => {
+  let dirty = false;
+  const validate = () => {
     const weight = Number(weightInput.value);
     const reps = Number(repsInput.value);
-
-    if (!Number.isFinite(weight) || weight < 0) {
+    if (weightInput.value.trim() === '' || !Number.isFinite(weight) || weight < 0) {
+      weightInput.setAttribute('aria-invalid', 'true');
       setPageError('Weight must be zero or greater.');
       weightInput.focus();
       return false;
     }
-    if (!Number.isSafeInteger(reps) || reps < 1) {
+    if (repsInput.value.trim() === '' || !Number.isSafeInteger(reps) || reps < 1) {
+      repsInput.setAttribute('aria-invalid', 'true');
       setPageError('Reps must be a positive whole number.');
       repsInput.focus();
       return false;
     }
+    weightInput.removeAttribute('aria-invalid');
+    repsInput.removeAttribute('aria-invalid');
+    return true;
+  };
+  const save = async () => {
+    if (!validate()) return false;
+    const weight = Number(weightInput.value);
+    const reps = Number(repsInput.value);
 
     const controls = [weightInput, repsInput, completeInput];
     controls.forEach(control => { control.disabled = true; });
@@ -361,12 +378,13 @@ function createSetRow(set) {
       });
 
       Object.assign(set, result.set);
+      dirty = false;
       row.classList.toggle('is-complete', set.completed);
       completeText.textContent = set.completed ? 'Done' : 'Mark done';
       updateProgress();
       return true;
     } catch (error) {
-      completeInput.checked = set.completed;
+      dirty = true;
       setPageError(`Could not save set ${set.set_number}. ${error.message}`);
       return false;
     } finally {
@@ -376,9 +394,11 @@ function createSetRow(set) {
     }
   };
 
-  weightInput.addEventListener('change', save);
-  repsInput.addEventListener('change', save);
-  completeInput.addEventListener('change', save);
+  for (const control of [weightInput, repsInput, completeInput]) {
+    control.addEventListener('input', () => { dirty = true; control.removeAttribute('aria-invalid'); });
+    control.addEventListener('change', () => { dirty = true; save(); });
+  }
+  setSavers.set(set.id, { validate, save, isDirty: () => dirty });
 
   return row;
 }
@@ -416,7 +436,9 @@ async function ensureTargetSets() {
 }
 
 async function addSet(exercise, currentSets) {
-  if (addingSet || pendingSaves > 0 || finishing) return;
+  if (addingSet || pendingSaves > 0 || finishing || preparingFinish) return;
+  addingSet = true;
+  if (!await saveVisibleSets()) { addingSet = false; return; }
 
   const lastSet = currentSets[currentSets.length - 1];
   const nextNumber = currentSets.reduce((max, set) => Math.max(max, set.set_number), 0) + 1;
@@ -468,16 +490,35 @@ function finishQuestion() {
   return 'Finish this workout? You will no longer be able to edit its sets.';
 }
 
+async function saveVisibleSets() {
+  for (const saver of setSavers.values()) if (!saver.validate()) return false;
+  for (const saver of setSavers.values()) if (saver.isDirty() && !await saver.save()) return false;
+  return true;
+}
+
 async function finishWorkout() {
-  if (pendingSaves > 0 || finishing) {
+  if (pendingSaves > 0 || finishing || preparingFinish || addingSet) {
     setPageError('Wait for your set changes to finish saving before finishing the workout.');
     return;
   }
 
-  const confirmed = window.confirm(finishQuestion());
-  if (!confirmed) return;
+  // Validate the visible values, including edits that never saved successfully.
+  // A browser confirm used to finish with the old saved value after an error.
+  preparingFinish = true;
+  try {
+    if (!await saveVisibleSets()) return;
+    document.querySelector('#finish-message').textContent = finishQuestion();
+    finishDialog.showModal();
+  } finally {
+    preparingFinish = false;
+  }
+}
 
+async function confirmFinishWorkout() {
+  if (finishing || pendingSaves > 0) return;
   finishing = true;
+  finishDialog.close();
+  document.querySelectorAll('#workout-content input, #workout-content button, [data-logout]').forEach(control => { control.disabled = true; });
   finishButton.disabled = true;
   pageStatus.textContent = 'Finishing workout…';
   setPageError('');
@@ -489,12 +530,12 @@ async function finishWorkout() {
     });
     clearActiveSession();
     clearWorkoutDraft();
-    location.href = 'history.html';
+    location.href = 'progress.html';
   } catch (error) {
     pageStatus.textContent = '';
     setPageError(`Could not finish your workout. ${error.message}`);
     finishing = false;
-    finishButton.disabled = false;
+    document.querySelectorAll('#workout-content input, #workout-content button, [data-logout]').forEach(control => { control.disabled = false; });
   }
 }
 
@@ -512,6 +553,9 @@ async function logOut(button) {
 }
 
 finishButton.addEventListener('click', finishWorkout);
+document.querySelector('#confirm-finish').addEventListener('click', confirmFinishWorkout);
+document.querySelector('#cancel-finish').addEventListener('click', () => finishDialog.close());
+finishDialog.addEventListener('close', () => { if (!finishing) finishButton.focus(); });
 addEmptyExerciseButton.addEventListener('click', addExerciseToEmptyWorkout);
 document.querySelectorAll('[data-logout]').forEach(button => {
   button.addEventListener('click', () => logOut(button));
@@ -536,7 +580,7 @@ window.addEventListener('pageshow', event => {
       if (workoutDetails.end_time) {
         clearActiveSession();
         clearWorkoutDraft();
-        location.replace('history.html');
+        location.replace('progress.html');
         return;
       }
     } else {

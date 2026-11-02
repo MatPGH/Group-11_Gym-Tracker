@@ -14,6 +14,7 @@ router.post('/', workoutController.startWorkout);
 router.post('/:id/sets', workoutController.addSet);
 router.put('/:id/sets/:setId', workoutController.updateSet);
 router.get('/', workoutController.listHistory);
+router.get('/history', workoutController.completedHistory);
 router.post('/:id/finish', workoutController.finishWorkout);
 router.get('/:id', workoutController.getWorkoutDetails);
 
