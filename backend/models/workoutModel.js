@@ -228,6 +228,16 @@ function finishWorkout(workoutId, userId) {
       throw err;
     }
 
+    // Only sets the user marked done are kept. Unchecked rows are placeholders
+    // the page created from the routine's targets, not lifts that happened, so
+    // they must not count in history or progress.
+    // Trello card: "Make workout logging and Finish Workout work - Wasif"
+    const removed = await runSql(
+      connection,
+      'DELETE FROM workout_sets WHERE workout_id = ? AND completed = 0',
+      [workoutId]
+    );
+
     const endTime = new Date().toISOString();
     await runSql(
       connection,
@@ -237,7 +247,7 @@ function finishWorkout(workoutId, userId) {
       [endTime, workoutId, userId]
     );
 
-    return { id: workoutId, end_time: endTime };
+    return { id: workoutId, end_time: endTime, removed_sets: removed.changes };
   });
 }
 

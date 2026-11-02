@@ -55,12 +55,9 @@
   .finish-workout-panel .primary { width: 100%; }
 }
 
-.empty-exercises { display: grid; gap: 16px; margin: 20px 0; }
-.empty-exercise-card { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
-.empty-exercise-card label { display: grid; gap: 6px; }
-.empty-exercise-card input, .empty-exercise-card select { width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: inherit; }
-.empty-set-row { display: grid; grid-template-columns: auto 1fr 1fr auto; align-items: end; gap: 10px; margin-bottom: 12px; }
-
-@media (max-width: 550px) {
-  .empty-set-row { grid-template-columns: 1fr 1fr; }
-}
+/* Empty workout: pick an exercise to add (it then gets a normal set table above). */
+.empty-exercise-picker { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px 12px; margin-top: 16px; }
+.empty-exercise-picker label { grid-column: 1 / -1; font-size: 14px; font-weight: bold; }
+.empty-exercise-picker select { width: 100%; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid #56604e; border-radius: 8px; background: #0d100d; color: var(--text); font: inherit; }
+.empty-exercise-picker select:focus-visible { outline: 3px solid var(--lime); outline-offset: 5px; }
+@media (max-width: 540px) { .empty-exercise-picker { grid-template-columns: 1fr; } }

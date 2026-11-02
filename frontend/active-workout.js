@@ -7,8 +7,11 @@ const workoutContent = document.querySelector('#workout-content');
 const exerciseContainer = document.querySelector('#active-exercises');
 const finishButton = document.querySelector('#finish-workout');
 const emptyWorkoutBuilder = document.querySelector('#empty-workout-builder');
-const emptyExercisesContainer = document.querySelector('#empty-exercises');
+const emptyExerciseSelect = document.querySelector('#empty-exercise-select');
 const addEmptyExerciseButton = document.querySelector('#add-empty-exercise');
+
+// Exercises added to an empty workout start with one set of 10 reps.
+const EMPTY_WORKOUT_START = { targetSets: 1, targetReps: 10 };
 
 let exerciseCatalog = [];
 
@@ -18,9 +21,19 @@ let workoutDraft = null;
 let workoutDetails = null;
 let pendingSaves = 0;
 let finishing = false;
+let addingSet = false; // stops a double tap on "+ Add Set" from saving two copies
 
 function setPageError(message) {
   pageError.textContent = message || '';
+}
+
+// After the list is redrawn, put keyboard focus on the new set's weight box so
+// keyboard and screen reader users don't lose their place.
+function focusSetWeight(exerciseId, setNumber) {
+  const input = exerciseContainer.querySelector(
+    `[data-exercise-id="${exerciseId}"] input[aria-label="Set ${setNumber} weight"]`
+  );
+  if (input) input.focus();
 }
 
 function saveActiveSession() {
@@ -78,134 +91,100 @@ async function loadExerciseCatalog() {
 }
 
 
-function createEmptyExerciseCard() {
-  const card = document.createElement('section');
-  card.className = 'empty-exercise-card';
+// ---- Empty workouts ----
+// An exercise added to an empty workout becomes a normal exercise card, so its
+// sets are saved to the server the same way as a routine's sets.
+// Trello card: "Make workout logging and Finish Workout work - Wasif"
 
-  const heading = document.createElement('h3');
-  heading.textContent = 'Choose an exercise';
-
-  const exerciseLabel = document.createElement('label');
-  exerciseLabel.textContent = 'Exercise';
-
-  const exerciseSelect = document.createElement('select');
-  exerciseSelect.required = true;
+function fillExercisePicker() {
+  const added = new Set(workoutDraft.exercises.map(exercise => exercise.exercise_id));
+  emptyExerciseSelect.replaceChildren();
 
   const placeholder = document.createElement('option');
   placeholder.value = '';
   placeholder.textContent = 'Select an exercise';
-  placeholder.selected = true;
-  placeholder.disabled = true;
-  exerciseSelect.append(placeholder);
+  emptyExerciseSelect.append(placeholder);
 
   for (const exercise of exerciseCatalog) {
+    if (added.has(exercise.id)) continue;
     const option = document.createElement('option');
     option.value = String(exercise.id);
     option.textContent = exercise.name;
-    exerciseSelect.append(option);
+    emptyExerciseSelect.append(option);
   }
-
-  exerciseLabel.append(exerciseSelect);
-
-  const setsSection = document.createElement('div');
-  setsSection.hidden = true;
-
-  const setsHeading = document.createElement('h4');
-  setsHeading.textContent = 'Sets';
-
-  const setsContainer = document.createElement('div');
-  setsContainer.className = 'empty-sets';
-
-  const addSetButton = document.createElement('button');
-  addSetButton.type = 'button';
-  addSetButton.className = 'text-button';
-  addSetButton.textContent = '+ Add Set';
-
-  const removeExerciseButton = document.createElement('button');
-  removeExerciseButton.type = 'button';
-  removeExerciseButton.className = 'text-button';
-  removeExerciseButton.textContent = 'Remove Exercise';
-
-  function addEmptySet() {
-    const row = document.createElement('div');
-    row.className = 'empty-set-row';
-
-    const setNumber = document.createElement('span');
-    setNumber.textContent = `Set ${setsContainer.children.length + 1}`;
-
-    const weightLabel = document.createElement('label');
-    weightLabel.textContent = `Weight (${currentUser.weightUnit || 'lbs'})`;
-
-    const weightInput = document.createElement('input');
-    weightInput.type = 'number';
-    weightInput.min = '0';
-    weightInput.step = '0.1';
-    weightInput.value = '0';
-    weightInput.required = true;
-    weightInput.addEventListener('focus', () => {
-      if (weightInput.value === '0') {
-        weightInput.select();
-      }
-    });
-    weightLabel.append(weightInput);
-
-    const repsLabel = document.createElement('label');
-    repsLabel.textContent = 'Reps';
-
-    const repsInput = document.createElement('input');
-    repsInput.type = 'number';
-    repsInput.min = '1';
-    repsInput.step = '1';
-    repsInput.value = '10';
-    repsInput.required = true;
-    repsLabel.append(repsInput);
-
-    const removeSetButton = document.createElement('button');
-    removeSetButton.type = 'button';
-    removeSetButton.className = 'text-button';
-    removeSetButton.textContent = 'Remove';
-
-    removeSetButton.addEventListener('click', () => {
-      row.remove();
-
-      Array.from(setsContainer.children).forEach((setRow, index) => {
-        setRow.querySelector('span').textContent = `Set ${index + 1}`;
-      });
-    });
-
-    row.append(setNumber, weightLabel, repsLabel, removeSetButton);
-    setsContainer.append(row);
-  }
-
-  exerciseSelect.addEventListener('change', () => {
-    if (exerciseSelect.value) {
-      setsSection.hidden = false;
-
-      if (setsContainer.children.length === 0) {
-        addEmptySet();
-      }
-    } else {
-      setsSection.hidden = true;
-      setsContainer.replaceChildren();
-    }
-  });
-
-  addSetButton.addEventListener('click', addEmptySet);
-
-  removeExerciseButton.addEventListener('click', () => card.remove());
-
-  setsSection.append(setsHeading, setsContainer, addSetButton);
-
-  card.append(
-    heading,
-    exerciseLabel,
-    setsSection,
-    removeExerciseButton
-  );
-
-  emptyExercisesContainer.append(card);
 }
 
+// Adds the chosen exercise and saves its first set right away.
+async function addExerciseToEmptyWorkout() {
+  if (pendingSaves > 0 || finishing) return;
+
+  const exercise = exerciseCatalog.find(item => item.id === Number(emptyExerciseSelect.value));
+  if (!exercise) {
+    setPageError('Choose an exercise to add.');
+    emptyExerciseSelect.focus();
+    return;
+  }
+
+  pendingSaves++;
+  finishButton.disabled = true;
+  addEmptyExerciseButton.disabled = true;
+  setPageError('');
+
+  try {
+    // Checked first, so a 31st exercise is refused before anything is saved.
+    const updatedDraft = createWorkoutDraft(currentUser.id, 'empty', workoutDraft.name, null, [
+      ...workoutDraft.exercises,
+      {
+        exercise_id: exercise.id,
+        name: exercise.name,
+        target_sets: EMPTY_WORKOUT_START.targetSets,
+        target_reps: EMPTY_WORKOUT_START.targetReps
+      }
+    ]);
+
+    const result = await gymApi(`/workouts/${workoutId}/sets`, {
+      method: 'POST',
+      body: JSON.stringify({
+        exercise_id: exercise.id,
+        set_number: 1,
+        weight: 0,
+        reps: EMPTY_WORKOUT_START.targetReps,
+        completed: false
+      })
+    });
+
+    workoutDraft = updatedDraft;
+    saveActiveSession(); // so the exercise is still here after a refresh
+    workoutDetails.sets.push(result.set);
+    renderWorkout();
+    focusSetWeight(exercise.id, 1);
+    pageStatus.textContent = `${exercise.name} added.`;
+  } catch (error) {
+    setPageError(`Could not add that exercise. ${error.message}`);
+  } finally {
+    pendingSaves--;
+    addEmptyExerciseButton.disabled = false;
+    finishButton.disabled = pendingSaves > 0 || finishing;
+  }
+}
+
+// If the page was closed right after saving a set but before it remembered the
+// exercise, add that exercise back from the sets the server already has.
+function includeLoggedExercises() {
+  for (const set of workoutDetails.sets) {
+    if (workoutDraft.exercises.some(exercise => exercise.exercise_id === set.exercise_id)) continue;
+    workoutDraft = createWorkoutDraft(currentUser.id, 'empty', workoutDraft.name, null, [
+      ...workoutDraft.exercises,
+      {
+        exercise_id: set.exercise_id,
+        name: set.exercise_name,
+        target_sets: EMPTY_WORKOUT_START.targetSets,
+        target_reps: EMPTY_WORKOUT_START.targetReps
+      }
+    ]);
+  }
+  saveActiveSession();
+}
 
 function updateProgress() {
   const sets = workoutDetails ? workoutDetails.sets : [];
@@ -220,11 +199,15 @@ function updateProgress() {
 }
 
 function renderWorkout() {
+  const isEmptyMode = workoutDraft.mode === 'empty';
+
   document.querySelector('#workout-name').textContent = workoutDraft.name;
   document.querySelector('#workout-description').textContent =
     workoutDraft.exercises.length
       ? `${workoutDraft.exercises.length} ${workoutDraft.exercises.length === 1 ? 'exercise' : 'exercises'} in this session. Your changes are saved as you go.`
-      : 'No exercises were selected for this session.';
+      : isEmptyMode
+        ? 'Add an exercise below to start logging.'
+        : 'No exercises were selected for this session.';
 
   exerciseContainer.replaceChildren();
 
@@ -233,6 +216,7 @@ function renderWorkout() {
   for (const exercise of workoutDraft.exercises) {
     const card = document.createElement('section');
     card.className = 'card active-exercise-card';
+    card.dataset.exerciseId = String(exercise.exercise_id);
 
     const heading = document.createElement('div');
     heading.className = 'active-exercise-heading';
@@ -242,7 +226,9 @@ function renderWorkout() {
 
     const target = document.createElement('p');
     target.className = 'field-help';
-    target.textContent = `Target: ${exercise.target_sets} sets × ${exercise.target_reps} reps`;
+    target.textContent = isEmptyMode
+      ? 'Added for today'
+      : `Target: ${exercise.target_sets} sets × ${exercise.target_reps} reps`;
 
     heading.append(title, target);
 
@@ -284,10 +270,9 @@ function renderWorkout() {
     exerciseContainer.append(card);
   }
 
-  const isEmptyMode = workoutDraft.mode === 'empty';
-
   emptyWorkoutBuilder.hidden = !isEmptyMode;
   exerciseContainer.hidden = isEmptyMode && workoutDraft.exercises.length === 0;
+  if (isEmptyMode) fillExercisePicker();
 
   updateProgress();
   workoutContent.hidden = false;
@@ -431,10 +416,15 @@ async function ensureTargetSets() {
 }
 
 async function addSet(exercise, currentSets) {
-  if (pendingSaves > 0 || finishing) return;
+  if (addingSet || pendingSaves > 0 || finishing) return;
 
   const lastSet = currentSets[currentSets.length - 1];
   const nextNumber = currentSets.reduce((max, set) => Math.max(max, set.set_number), 0) + 1;
+
+  // Counted as a pending save, so a second tap (or Finish) waits for this one.
+  addingSet = true;
+  pendingSaves++;
+  finishButton.disabled = true;
 
   try {
     setPageError('');
@@ -451,10 +441,31 @@ async function addSet(exercise, currentSets) {
 
     workoutDetails.sets.push(result.set);
     renderWorkout();
-    setPageError('Set added.');
+    focusSetWeight(exercise.exercise_id, nextNumber);
+    pageStatus.textContent = `Set ${nextNumber} added.`;
   } catch (error) {
     setPageError(`Could not add a set. ${error.message}`);
+  } finally {
+    addingSet = false;
+    pendingSaves--;
+    finishButton.disabled = pendingSaves > 0 || finishing;
   }
+}
+
+// The question asked before finishing. Sets not marked done are not saved
+// (the server removes them when the workout is finished).
+function finishQuestion() {
+  const sets = workoutDetails ? workoutDetails.sets : [];
+  const done = sets.filter(set => set.completed).length;
+  const skipped = sets.length - done;
+
+  if (done === 0) {
+    return 'No sets are marked done yet. Finish anyway? The workout will be saved with no sets.';
+  }
+  if (skipped > 0) {
+    return `Finish this workout? ${skipped} ${skipped === 1 ? 'set' : 'sets'} not marked done will not be saved, and you won't be able to edit it after.`;
+  }
+  return 'Finish this workout? You will no longer be able to edit its sets.';
 }
 
 async function finishWorkout() {
@@ -463,7 +474,7 @@ async function finishWorkout() {
     return;
   }
 
-  const confirmed = window.confirm('Finish this workout? You will no longer be able to edit its sets.');
+  const confirmed = window.confirm(finishQuestion());
   if (!confirmed) return;
 
   finishing = true;
@@ -501,7 +512,7 @@ async function logOut(button) {
 }
 
 finishButton.addEventListener('click', finishWorkout);
-addEmptyExerciseButton.addEventListener('click', createEmptyExerciseCard);
+addEmptyExerciseButton.addEventListener('click', addExerciseToEmptyWorkout);
 document.querySelectorAll('[data-logout]').forEach(button => {
   button.addEventListener('click', () => logOut(button));
 });
@@ -551,9 +562,8 @@ window.addEventListener('pageshow', event => {
 
     if (workoutDraft.mode === 'empty') {
       await loadExerciseCatalog();
-      if (emptyExercisesContainer.children.length === 0) {
-        createEmptyExerciseCard();
-      }
+      await refreshWorkoutDetails(); // sets already saved, for example after a refresh
+      includeLoggedExercises();
     } else {
       await ensureTargetSets();
     }
