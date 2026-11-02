@@ -24,9 +24,18 @@ test('routine selection carries ordered targets without changing the saved routi
 test('custom and empty choices remain separate from reusable routines', () => {
   assert.equal(createWorkoutDraft(1, 'custom', 'Today', null, exercises).routineId, null);
   assert.deepEqual(createWorkoutDraft(1, 'empty', 'Empty workout', null, []).exercises, []);
-  for (const args of [[1,'custom','Today',null,[]],[1,'routine','Plan',null,exercises],[1,'empty','Blank',7,[]],[1,'empty','Blank',null,exercises]]) {
+  for (const args of [[1,'custom','Today',null,[]],[1,'routine','Plan',null,exercises],[1,'empty','Blank',7,[]]]) {
     assert.throws(() => createWorkoutDraft(...args));
   }
+});
+test('an empty workout can gain exercises during the session but never a routine', () => {
+  // The Active Workout page adds exercises to an empty workout as they are chosen.
+  const grown = createWorkoutDraft(1, 'empty', 'Empty workout', null, exercises);
+  assert.equal(grown.mode, 'empty');
+  assert.equal(grown.routineId, null);
+  assert.deepEqual(grown.exercises.map(e => e.exercise_order), [1, 2]);
+  assert.throws(() => createWorkoutDraft(1, 'empty', 'Empty workout', 7, exercises));
+  assert.throws(() => createWorkoutDraft(1, 'empty', 'Empty workout', null, Array(31).fill(exercises[0])));
 });
 test('a new choice replaces the old draft and belongs only to its signed-in user', () => {
   saveWorkoutDraft(createWorkoutDraft(1, 'routine', 'Plan', 7, exercises));

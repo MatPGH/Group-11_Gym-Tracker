@@ -46,11 +46,16 @@
 
         <section id="empty-workout-builder" class="card" hidden>
           <h2>Build your workout</h2>
-          <p>Choose exercises, then enter the weight and reps for each set.</p>
-          <div id="empty-exercises" class="empty-exercises"></div>
-          <button type="button" class="text-button" id="add-empty-exercise">
-            + Add Exercise
-          </button>
+          <p>Add an exercise, then log its sets. Everything is saved as you go.</p>
+          <div class="empty-exercise-picker">
+            <label for="empty-exercise-select">Exercise</label>
+            <select id="empty-exercise-select">
+              <option value="">Select an exercise</option>
+            </select>
+            <button type="button" class="text-button" id="add-empty-exercise">
+              + Add Exercise
+            </button>
+          </div>
         </section>
 
         <div class="finish-workout-panel card">
