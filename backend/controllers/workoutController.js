@@ -145,6 +145,11 @@ async function getWorkoutDetails(req, res, next) {
 }
 
 module.exports = {
+  async completedHistory(req, res, next) {
+    try {
+      res.json({ workouts: await workoutModel.completedHistory(req.session.userId) });
+    } catch (err) { next(err); }
+  },
   startWorkout,
   addSet,
   updateSet,

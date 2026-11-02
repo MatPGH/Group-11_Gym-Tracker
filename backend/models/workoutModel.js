@@ -287,4 +287,24 @@ async function getWorkoutDetails(workoutId, userId) {
   return { ...workout, sets };
 }
 
-module.exports = {create, addSet, updateSet, listHistory, finishWorkout, getWorkoutDetails};
+// Load only the signed-in user's finished sessions, including their logged sets.
+// Details/notes remain available through the existing owner-checked detail route.
+async function completedHistory(userId) {
+  const workouts = await getAll(db,
+    `SELECT w.id, w.routine_id, w.start_time, w.end_time, r.name AS routine_name
+     FROM workouts w LEFT JOIN routines r ON w.routine_id = r.id
+     WHERE w.user_id = ? AND w.end_time IS NOT NULL
+     ORDER BY datetime(w.start_time) DESC, w.id DESC`, [userId]);
+  const sets = await getAll(db,
+    `SELECT s.workout_id, s.exercise_id, e.name AS exercise_name,
+            s.set_number, s.weight, s.reps
+     FROM workout_sets s JOIN workouts w ON s.workout_id = w.id
+     JOIN exercises e ON s.exercise_id = e.id
+     WHERE w.user_id = ? AND w.end_time IS NOT NULL AND s.completed = 1
+     ORDER BY s.id`, [userId]);
+  const grouped = new Map(workouts.map(w => [w.id, { ...w, sets: [] }]));
+  for (const set of sets) grouped.get(set.workout_id)?.sets.push(set);
+  return [...grouped.values()];
+}
+
+module.exports = {create, addSet, updateSet, listHistory, finishWorkout, getWorkoutDetails, completedHistory};

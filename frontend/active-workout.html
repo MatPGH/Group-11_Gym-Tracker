@@ -6,6 +6,7 @@
   <title>Active Workout | Gym Tracker</title>
   <link rel="stylesheet" href="dashboard-profile.css">
   <link rel="stylesheet" href="workout.css">
+  <link rel="stylesheet" href="progress.css">
   <script src="api.js" defer></script>
   <script src="workout-draft.js" defer></script>
   <script src="active-workout.js" defer></script>
@@ -61,7 +62,7 @@
         <div class="finish-workout-panel card">
           <div>
             <h2>Finished for today?</h2>
-            <p class="field-help">You'll be able to log your sets and track your workout progress.</p>
+            <p class="field-help">Save your completed sets and view them on Progress.</p>
           </div>
           <button id="finish-workout" class="primary" type="button">Finish Workout</button>
         </div>
@@ -78,5 +79,14 @@
       <a href="progress.html">▥<span>View Progress</span></a>
     </nav>
   </div>
+  <dialog id="finish-dialog" aria-labelledby="finish-title" aria-describedby="finish-message">
+    <p class="eyebrow">SESSION COMPLETE</p>
+    <h2 id="finish-title">Finish your workout?</h2>
+    <p id="finish-message"></p>
+    <div class="finish-actions">
+      <button id="cancel-finish" type="button" class="text-button" autofocus>Keep training</button>
+      <button id="confirm-finish" type="button" class="primary">Save workout</button>
+    </div>
+  </dialog>
 </body>
 </html>
