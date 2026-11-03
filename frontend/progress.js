@@ -7,14 +7,78 @@ const details = document.querySelector('#workout-details');
 const historyList = document.querySelector('#history-list');
 let workouts = [], unit = 'lbs', page = 1, selection = null, detailRequest = 0, lastDetailButton = null;
 const PAGE_SIZE = 5;
+let bodyWeightEntries = [];
+const bodyWeightForm = document.querySelector('#body-weight-form');
 const number = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
 const date = (value, options = {}) => new Date(value).toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short', day: 'numeric', ...options });
+
 function node(tag, text, className) {
   const element = document.createElement(tag);
   if (text !== undefined) element.textContent = text;
   if (className) element.className = className;
   return element;
 }
+function renderBodyWeightHistory() {
+  const rows = document.querySelector('#body-weight-rows');
+  const empty = document.querySelector('#body-weight-empty');
+
+  rows.replaceChildren();
+
+  if (!bodyWeightEntries.length) {
+    empty.textContent = 'No weight entries yet. Add your first entry above.';
+    empty.hidden = false;
+    return;
+  }
+
+  empty.hidden = true;
+
+  bodyWeightEntries.forEach(entry => {
+    const row = document.createElement('tr');
+
+    const dateCell = node('td', date(entry.date));
+    const weightCell = node('td', `${number(entry.weight)} ${unit}`);
+
+    row.append(dateCell, weightCell);
+    rows.append(row);
+  });
+}
+bodyWeightForm.addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const status = document.querySelector('#body-weight-status');
+  const dateInput = document.querySelector('#body-weight-date');
+  const weightInput = document.querySelector('#body-weight-input');
+
+  const dateValue = dateInput.value;
+  const weightValue = Number(weightInput.value);
+
+  if (!dateValue || !Number.isFinite(weightValue) || weightValue <= 0) {
+    status.textContent = 'Enter a valid date and weight.';
+    return;
+  }
+
+  status.textContent = 'Saving weight...';
+
+  try {
+    await gymApi('/body-weight', {
+      method: 'POST',
+      body: JSON.stringify({
+        date: dateValue,
+        weight: weightValue
+      })
+    });
+
+    const weightData = await gymApi('/body-weight');
+    bodyWeightEntries = weightData.entries;
+
+    renderBodyWeightHistory();
+    bodyWeightForm.reset();
+
+    status.textContent = 'Weight entry saved successfully.';
+  } catch (error) {
+    status.textContent = error.message || 'Unable to save weight entry.';
+  }
+});
 function drawChart() {
   const container = document.querySelector('#chart-container');
   container.replaceChildren();
@@ -126,8 +190,13 @@ function applyFilters() {
 async function loadProgress() {
   closeDetails(); content.hidden = true; document.querySelector('#retry-progress').hidden = true; pageStatus.textContent = 'Loading your workouts…';
   try {
-    const { user } = await gymApi('/profile'), data = await gymApi('/workouts/history');
+    const { user } = await gymApi('/profile');
+    const data = await gymApi('/workouts/history');
+    const weightData = await gymApi('/body-weight');
     unit = user.weightUnit; workouts = data.workouts;
+    bodyWeightEntries = weightData.entries;
+    document.querySelector('#body-weight-unit').textContent = unit;
+    renderBodyWeightHistory();
     const exercises = new Map();
     for (const workout of workouts) for (const set of workout.sets) exercises.set(set.exercise_id, set.exercise_name);
     exerciseSelect.replaceChildren();

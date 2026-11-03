@@ -7,6 +7,7 @@ const authRoutes = require('./authRoutes');
 const exerciseRoutes = require('./exerciseRoutes');
 const routineRoutes = require('./routineRoutes');
 const workoutRoutes = require('./workoutRoutes');
+const bodyWeightRoutes = require('./bodyWeightRoutes');
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.use('/auth', authRoutes);         // register, login, logout
 router.use('/exercises', exerciseRoutes); // exercise catalog and search
 router.use('/routines', routineRoutes);   // create, edit, delete routines
 router.use('/workouts', workoutRoutes);  // start workouts, manage workout history
+router.use('/body-weight', bodyWeightRoutes); // body-weight tracking
 router.use('/', require('./accountRoutes')); // authenticated profile and dashboard
 
 module.exports = router;
