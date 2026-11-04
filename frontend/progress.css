@@ -1,5 +1,9 @@
-.progress-shell { max-width: 760px; }
-.progress-shell .brand { margin-right: auto; }
+.progress-shell { max-width: 960px; }
+.legacy-unit-form { padding: 16px; margin: 16px 0; border: 1px solid var(--border); border-radius: 12px; }
+.legacy-unit-form label { display: block; }
+.legacy-unit-form select { max-width: 100%; min-height: 44px; margin: 10px 12px 10px 0; font: inherit; }
+.legacy-unit-form .primary { margin-top: 8px; }
+
 .progress-shell h1 { color: var(--lime); font-size: clamp(25px, 4vw, 34px); }
 .progress-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 34px 0 26px; }
 .progress-filters label { min-width: 0; color: var(--muted); font-size: 13px; }

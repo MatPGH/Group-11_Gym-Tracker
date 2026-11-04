@@ -36,6 +36,8 @@ async function addSet(req, res, next) {
     const weight = Number(input.weight);
     const reps = Number(input.reps);
     const completed = input.completed === undefined ? false : input.completed;
+    if (input.readd !== undefined && typeof input.readd !== 'boolean') return res.status(400).json({ error: 'Choose a valid exercise action.' });
+    if (input.weightUnit !== undefined && !['lbs', 'kg'].includes(input.weightUnit)) return res.status(400).json({ error: 'Choose pounds or kilograms.' });
 
     if (!Number.isSafeInteger(exerciseId) || exerciseId < 1) {
       return res.status(400).json({ error: 'Choose a valid exercise.' });
@@ -43,7 +45,7 @@ async function addSet(req, res, next) {
     if (!Number.isSafeInteger(setNumber) || setNumber < 1) {
       return res.status(400).json({ error: 'Set number must be a positive whole number.' });
     }
-    if (!Number.isFinite(weight) || weight < 0) {
+    if (input.weight === '' || input.weight === null || !Number.isFinite(weight * 2.20462) || weight < 0) {
       return res.status(400).json({ error: 'Weight must be a non-negative number.' });
     }
     if (!Number.isSafeInteger(reps) || reps < 1) {
@@ -54,7 +56,7 @@ async function addSet(req, res, next) {
     }
 
     const set = await workoutModel.addSet(workoutId, req.session.userId, {
-      exerciseId, setNumber, weight, reps, completed
+      exerciseId, setNumber, weight, reps, completed, weightUnit: input.weightUnit, readd: input.readd
     });
 
     return res.status(201).json({ set });
@@ -72,12 +74,13 @@ async function updateSet(req, res, next) {
     const weight = Number(input.weight);
     const reps = Number(input.reps);
     const completed = input.completed;
+    if (input.weightUnit !== undefined && !['lbs', 'kg'].includes(input.weightUnit)) return res.status(400).json({ error: 'Choose pounds or kilograms.' });
 
     if (!Number.isSafeInteger(workoutId) || workoutId < 1 ||
         !Number.isSafeInteger(setId) || setId < 1) {
       return res.status(404).json({ error: 'Workout set not found.' });
     }
-    if (!Number.isFinite(weight) || weight < 0) {
+    if (input.weight === '' || input.weight === null || !Number.isFinite(weight * 2.20462) || weight < 0) {
       return res.status(400).json({ error: 'Weight must be a non-negative number.' });
     }
     if (!Number.isSafeInteger(reps) || reps < 1) {
@@ -88,7 +91,7 @@ async function updateSet(req, res, next) {
     }
 
     const set = await workoutModel.updateSet(workoutId, req.session.userId, setId, {
-      weight, reps, completed
+      weight, reps, completed, weightUnit: input.weightUnit
     });
 
     return res.status(200).json({ set });
@@ -145,6 +148,29 @@ async function getWorkoutDetails(req, res, next) {
 }
 
 module.exports = {
+  async updateNotes(req, res, next) {
+    try {
+      const id = Number(req.params.id), notes = req.body?.notes;
+      if (!Number.isSafeInteger(id) || id < 1) return res.status(404).json({ error: 'Workout not found.' });
+      if (typeof notes !== 'string' || notes.length > 2000) return res.status(400).json({ error: 'Notes must contain at most 2,000 characters.' });
+      res.json(await workoutModel.updateNotes(id, req.session.userId, notes.trim()));
+    } catch (error) { next(error); }
+  },
+  async removeExercise(req, res, next) {
+    try {
+      const id = Number(req.params.id), exerciseId = Number(req.params.exerciseId);
+      if (!Number.isSafeInteger(id) || id < 1 || !Number.isSafeInteger(exerciseId) || exerciseId < 1) return res.status(404).json({ error: 'Workout exercise not found.' });
+      res.json(await workoutModel.removeExercise(id, req.session.userId, exerciseId));
+    } catch (error) { next(error); }
+  },
+  async confirmWeightUnit(req, res, next) {
+    try {
+      const id = Number(req.params.id), unit = req.body?.weightUnit;
+      if (!Number.isSafeInteger(id) || id < 1) return res.status(404).json({ error: 'Workout not found.' });
+      if (!['lbs', 'kg'].includes(unit)) return res.status(400).json({ error: 'Choose the unit originally used for this workout.' });
+      res.json(await workoutModel.confirmWeightUnit(id, req.session.userId, unit));
+    } catch (error) { next(error); }
+  },
   async completedHistory(req, res, next) {
     try {
       res.json({ workouts: await workoutModel.completedHistory(req.session.userId) });

@@ -1,7 +1,7 @@
 'use strict';
 // Temporary, per-tab handoff only. Completed workouts must be saved by the backend.
 const WORKOUT_DRAFT_KEY = 'gymTracker.workoutDraft';
-function createWorkoutDraft(userId, mode, name, routineId, exercises) {
+function createWorkoutDraft(userId, mode, name, routineId, exercises, allowEmptyActiveWorkout = false) {
   if (!Number.isSafeInteger(userId) || userId < 1 || !['routine', 'custom', 'empty'].includes(mode)) {
     throw new Error('Choose a valid workout.');
   }
@@ -9,7 +9,7 @@ function createWorkoutDraft(userId, mode, name, routineId, exercises) {
     throw new Error('Use a workout name of 1–100 characters.');
   }
   if (!Array.isArray(exercises) || exercises.length > 30 ||
-      (mode !== 'empty' && exercises.length === 0) ||
+      (!allowEmptyActiveWorkout && mode !== 'empty' && exercises.length === 0) ||
       (mode === 'routine' ? !Number.isSafeInteger(routineId) || routineId < 1 : routineId !== null)) {
     throw new Error('Choose a valid workout and exercise list.');
   }

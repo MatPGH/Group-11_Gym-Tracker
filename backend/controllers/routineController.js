@@ -1,12 +1,10 @@
 // Routine controller: list, create, edit, and delete routines (FR-06 to FR-08).
-// Trello card: "Connect Routine pages to the backend - Wasif"
-//
 // Every route requires sign-in (see routineRoutes.js). This file checks the
 // input (FR-18) and makes sure people only see or change their own routines
 // (FR-17). The actual saving is done by models/routineModel.js.
 const routineModel = require('../models/routineModel');
 
-// Limits match the form on Laura's Routines page.
+// Keep these limits in sync with the routine form.
 const LIMITS = {
   nameLength: 100,
   descriptionLength: 255,
@@ -20,7 +18,7 @@ function isWholeNumberBetween(value, min, max) {
 }
 
 // Turns the request body into clean data, or returns { error } explaining what's wrong.
-// Accepts the snake_case names Laura's page sends (exercise_id, target_sets,
+// Accepts snake_case field names (exercise_id, target_sets,
 // target_reps) and camelCase (exerciseId, targetSets, targetReps).
 function readRoutineInput(body) {
   const input = body || {};

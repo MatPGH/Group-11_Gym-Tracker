@@ -10,8 +10,14 @@ const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+const databaseReady = require('./migrateDatabase')(require('./database'));
+databaseReady.catch(error => console.error('Database migration failed:', error.message));
+app.use(async (req, res, next) => {
+  try { await databaseReady; next(); } catch (error) { next(error); }
+});
 
 // Parse JSON and form bodies sent by the View (browser).
+app.use('/api/profile/picture', express.json({ limit: '400kb' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

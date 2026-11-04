@@ -11,6 +11,9 @@ const emptyExerciseSelect = document.querySelector('#empty-exercise-select');
 const addEmptyExerciseButton = document.querySelector('#add-empty-exercise');
 const finishDialog = document.querySelector('#finish-dialog');
 const setSavers = new Map();
+const notesInput = document.querySelector('#workout-notes');
+const removeDialog = document.querySelector('#remove-exercise-dialog');
+let savedNotes = '', notesSave = null, exerciseToRemove = null, removingExercise = false;
 
 // Exercises added to an empty workout start with one set of 10 reps.
 const EMPTY_WORKOUT_START = { targetSets: 1, targetReps: 10 };
@@ -67,7 +70,8 @@ function readActiveSession(userId) {
       saved.draft.mode,
       saved.draft.name,
       saved.draft.routineId,
-      saved.draft.exercises
+      saved.draft.exercises,
+      true
     );
 
     return { workoutId: saved.workoutId, draft };
@@ -97,7 +101,6 @@ async function loadExerciseCatalog() {
 // ---- Empty workouts ----
 // An exercise added to an empty workout becomes a normal exercise card, so its
 // sets are saved to the server the same way as a routine's sets.
-// Trello card: "Make workout logging and Finish Workout work - Wasif"
 
 function fillExercisePicker() {
   const added = new Set(workoutDraft.exercises.map(exercise => exercise.exercise_id));
@@ -119,7 +122,7 @@ function fillExercisePicker() {
 
 // Adds the chosen exercise and saves its first set right away.
 async function addExerciseToEmptyWorkout() {
-  if (pendingSaves > 0 || finishing || addingSet || preparingFinish) return;
+  if (pendingSaves > 0 || finishing || addingSet || preparingFinish || removingExercise) return;
 
   const exercise = exerciseCatalog.find(item => item.id === Number(emptyExerciseSelect.value));
   if (!exercise) {
@@ -137,7 +140,7 @@ async function addExerciseToEmptyWorkout() {
 
   try {
     // Checked first, so a 31st exercise is refused before anything is saved.
-    const updatedDraft = createWorkoutDraft(currentUser.id, 'empty', workoutDraft.name, null, [
+    const updatedDraft = createWorkoutDraft(currentUser.id, workoutDraft.mode, workoutDraft.name, workoutDraft.routineId, [
       ...workoutDraft.exercises,
       {
         exercise_id: exercise.id,
@@ -153,6 +156,8 @@ async function addExerciseToEmptyWorkout() {
         exercise_id: exercise.id,
         set_number: 1,
         weight: 0,
+        weightUnit: currentUser.weightUnit,
+        readd: true,
         reps: EMPTY_WORKOUT_START.targetReps,
         completed: false
       })
@@ -179,7 +184,7 @@ async function addExerciseToEmptyWorkout() {
 function includeLoggedExercises() {
   for (const set of workoutDetails.sets) {
     if (workoutDraft.exercises.some(exercise => exercise.exercise_id === set.exercise_id)) continue;
-    workoutDraft = createWorkoutDraft(currentUser.id, 'empty', workoutDraft.name, null, [
+    workoutDraft = createWorkoutDraft(currentUser.id, workoutDraft.mode, workoutDraft.name, workoutDraft.routineId, [
       ...workoutDraft.exercises,
       {
         exercise_id: set.exercise_id,
@@ -218,7 +223,10 @@ function renderWorkout() {
   exerciseContainer.replaceChildren();
   setSavers.clear();
 
-  const unit = currentUser.weightUnit || 'lbs';
+  const legacyUnit = workoutDetails.weight_unit === null;
+  const unit = legacyUnit ? 'unit unconfirmed' : (workoutDetails.display_unit || currentUser.weightUnit || 'lbs');
+  if (workoutDetails.display_unit) currentUser.weightUnit = workoutDetails.display_unit;
+  document.querySelector('#legacy-weight-notice').hidden = !legacyUnit;
 
   for (const exercise of workoutDraft.exercises) {
     const card = document.createElement('section');
@@ -237,7 +245,18 @@ function renderWorkout() {
       ? 'Added for today'
       : `Target: ${exercise.target_sets} sets × ${exercise.target_reps} reps`;
 
-    heading.append(title, target);
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.className = 'text-button danger';
+    remove.textContent = 'Remove exercise';
+    remove.setAttribute('aria-label', `Remove ${exercise.name} from workout`);
+    remove.addEventListener('click', () => {
+      if (pendingSaves || addingSet || removingExercise || finishing || preparingFinish) return;
+      exerciseToRemove = exercise;
+      document.querySelector('#remove-exercise-message').textContent = `Remove ${exercise.name} and all its sets from this workout? Your saved routine stays unchanged.`;
+      document.querySelector('#remove-exercise-status').textContent = '';
+      removeDialog.showModal();
+    });
+    heading.append(title, target, remove);
 
     const tableWrap = document.createElement('div');
     tableWrap.className = 'set-table-wrap';
@@ -277,9 +296,12 @@ function renderWorkout() {
     exerciseContainer.append(card);
   }
 
-  emptyWorkoutBuilder.hidden = !isEmptyMode;
+  emptyWorkoutBuilder.hidden = false;
   exerciseContainer.hidden = isEmptyMode && workoutDraft.exercises.length === 0;
-  if (isEmptyMode) fillExercisePicker();
+  fillExercisePicker();
+  if (legacyUnit) exerciseContainer.querySelectorAll('input, button').forEach(control => { control.disabled = true; });
+  addEmptyExerciseButton.disabled = legacyUnit;
+  finishButton.disabled = legacyUnit || pendingSaves > 0 || finishing;
 
   updateProgress();
   workoutContent.hidden = false;
@@ -298,9 +320,10 @@ function createSetRow(set) {
   const weightInput = document.createElement('input');
   weightInput.type = 'number';
   weightInput.min = '0';
-  weightInput.step = '0.1';
+  weightInput.step = 'any';
   weightInput.inputMode = 'decimal';
-  weightInput.value = String(set.weight);
+  weightInput.value = String(Math.round(set.weight * 10) / 10);
+  let savedWeightDisplay = weightInput.value;
   weightInput.setAttribute('aria-label', `Set ${set.set_number} weight`);
   weightInput.addEventListener('focus', () => {
   if (weightInput.value === '0') {
@@ -358,7 +381,7 @@ function createSetRow(set) {
   };
   const save = async () => {
     if (!validate()) return false;
-    const weight = Number(weightInput.value);
+    const weight = weightInput.value === savedWeightDisplay ? set.weight : Number(weightInput.value);
     const reps = Number(repsInput.value);
 
     const controls = [weightInput, repsInput, completeInput];
@@ -372,12 +395,14 @@ function createSetRow(set) {
         method: 'PUT',
         body: JSON.stringify({
           weight,
+          weightUnit: currentUser?.weightUnit || 'lbs',
           reps,
           completed: completeInput.checked
         })
       });
 
       Object.assign(set, result.set);
+      savedWeightDisplay = weightInput.value;
       dirty = false;
       row.classList.toggle('is-complete', set.completed);
       completeText.textContent = set.completed ? 'Done' : 'Mark done';
@@ -398,7 +423,7 @@ function createSetRow(set) {
     control.addEventListener('input', () => { dirty = true; control.removeAttribute('aria-invalid'); });
     control.addEventListener('change', () => { dirty = true; save(); });
   }
-  setSavers.set(set.id, { validate, save, isDirty: () => dirty });
+  setSavers.set(set.id, { exerciseId: set.exercise_id, validate, save, isDirty: () => dirty });
 
   return row;
 }
@@ -411,6 +436,8 @@ async function refreshWorkoutDetails() {
 
 async function ensureTargetSets() {
   await refreshWorkoutDetails();
+  applyRemovedExercises();
+  if (workoutDetails.weight_unit === null) return;
 
   for (const exercise of workoutDraft.exercises) {
     const existing = workoutDetails.sets.filter(set => set.exercise_id === exercise.exercise_id);
@@ -425,6 +452,7 @@ async function ensureTargetSets() {
           exercise_id: exercise.exercise_id,
           set_number: number,
           weight: 0,
+          weightUnit: currentUser.weightUnit,
           reps: exercise.target_reps,
           completed: false
         })
@@ -436,7 +464,7 @@ async function ensureTargetSets() {
 }
 
 async function addSet(exercise, currentSets) {
-  if (addingSet || pendingSaves > 0 || finishing || preparingFinish) return;
+  if (addingSet || pendingSaves > 0 || finishing || preparingFinish || removingExercise) return;
   addingSet = true;
   if (!await saveVisibleSets()) { addingSet = false; return; }
 
@@ -456,6 +484,7 @@ async function addSet(exercise, currentSets) {
         exercise_id: exercise.exercise_id,
         set_number: nextNumber,
         weight: lastSet ? lastSet.weight : 0,
+        weightUnit: currentUser.weightUnit,
         reps: lastSet ? lastSet.reps : exercise.target_reps,
         completed: false
       })
@@ -474,8 +503,7 @@ async function addSet(exercise, currentSets) {
   }
 }
 
-// The question asked before finishing. Sets not marked done are not saved
-// (the server removes them when the workout is finished).
+// Explain which unchecked sets will be dropped before finishing.
 function finishQuestion() {
   const sets = workoutDetails ? workoutDetails.sets : [];
   const done = sets.filter(set => set.completed).length;
@@ -490,14 +518,99 @@ function finishQuestion() {
   return 'Finish this workout? You will no longer be able to edit its sets.';
 }
 
-async function saveVisibleSets() {
-  for (const saver of setSavers.values()) if (!saver.validate()) return false;
-  for (const saver of setSavers.values()) if (saver.isDirty() && !await saver.save()) return false;
+async function saveVisibleSets(excludedExerciseId = null) {
+  const savers = [...setSavers.values()].filter(saver => saver.exerciseId !== excludedExerciseId);
+  for (const saver of savers) if (!saver.validate()) return false;
+  for (const saver of savers) if (saver.isDirty() && !await saver.save()) return false;
+  if (!await saveWorkoutNotes()) return false;
   return true;
 }
 
+function applyRemovedExercises() {
+  const removed = new Set(workoutDetails.removed_exercise_ids || []);
+  workoutDraft = createWorkoutDraft(currentUser.id, workoutDraft.mode, workoutDraft.name, workoutDraft.routineId,
+    workoutDraft.exercises.filter(exercise => !removed.has(exercise.exercise_id)), true);
+  saveActiveSession();
+}
+
+async function saveWorkoutNotes() {
+  if (notesSave) return notesSave;
+  if (notesInput.value === savedNotes) return true;
+  if (notesInput.value.length > 2000) {
+    document.querySelector('#notes-status').textContent = 'Notes must contain at most 2,000 characters.';
+    notesInput.focus(); return false;
+  }
+  const value = notesInput.value;
+  notesSave = (async () => {
+    notesInput.disabled = true;
+    document.querySelector('#save-workout-notes').disabled = true;
+    pendingSaves++; finishButton.disabled = true;
+    const status = document.querySelector('#notes-status');
+    status.textContent = 'Saving notes…';
+    try {
+      const result = await gymApi(`/workouts/${workoutId}/notes`, { method: 'PUT', body: JSON.stringify({ notes: value }) });
+      savedNotes = result.notes;
+      notesInput.value = savedNotes;
+      workoutDetails.notes = savedNotes;
+      status.textContent = 'Notes saved.'; return true;
+    } catch (error) {
+      status.textContent = `Could not save notes. ${error.message}`; return false;
+    } finally {
+      pendingSaves--; notesSave = null; notesInput.disabled = false;
+      document.querySelector('#save-workout-notes').disabled = false;
+      finishButton.disabled = pendingSaves > 0 || finishing || removingExercise || workoutDetails?.weight_unit === null;
+    }
+  })();
+  return notesSave;
+}
+notesInput.addEventListener('change', saveWorkoutNotes);
+document.querySelector('#save-workout-notes').addEventListener('click', saveWorkoutNotes);
+
+document.querySelector('#cancel-remove-exercise').addEventListener('click', () => removeDialog.close());
+removeDialog.addEventListener('cancel', event => { if (removingExercise) event.preventDefault(); });
+document.querySelector('#confirm-remove-exercise').addEventListener('click', async () => {
+  if (!exerciseToRemove || removingExercise || pendingSaves || finishing) return;
+  removingExercise = true;
+  removeDialog.querySelectorAll('button').forEach(button => { button.disabled = true; });
+  const exercise = exerciseToRemove;
+  const status = document.querySelector('#remove-exercise-status');
+  try {
+    if (!await saveVisibleSets(exercise.exercise_id)) { status.textContent = 'Save or correct your other changes before removing this exercise.'; return; }
+    pendingSaves++; finishButton.disabled = true;
+    try {
+      await gymApi(`/workouts/${workoutId}/exercises/${exercise.exercise_id}`, { method: 'DELETE' });
+      workoutDraft = createWorkoutDraft(currentUser.id, workoutDraft.mode, workoutDraft.name, workoutDraft.routineId,
+        workoutDraft.exercises.filter(item => item.exercise_id !== exercise.exercise_id), true);
+      saveActiveSession();
+      workoutDetails.sets = workoutDetails.sets.filter(set => set.exercise_id !== exercise.exercise_id);
+      renderWorkout();
+      removeDialog.close(); emptyExerciseSelect.focus();
+      pageStatus.textContent = `${exercise.name} removed from this workout.`;
+    } finally { pendingSaves--; }
+  } catch (error) { status.textContent = `Could not remove exercise. ${error.message}`; }
+  finally {
+    removingExercise = false;
+    removeDialog.querySelectorAll('button').forEach(button => { button.disabled = false; });
+    finishButton.disabled = pendingSaves > 0 || finishing || workoutDetails?.weight_unit === null;
+  }
+});
+
+document.querySelector('#confirm-workout-unit').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  if (button.disabled) return;
+  const unit = document.querySelector('#legacy-workout-unit').value;
+  const status = document.querySelector('#legacy-unit-status');
+  if (!unit) { status.textContent = 'Choose the original unit for this workout.'; return; }
+  button.disabled = true;
+  try {
+    await gymApi(`/workouts/${workoutId}/weight-unit`, { method: 'PUT', body: JSON.stringify({ weightUnit: unit }) });
+    await ensureTargetSets(); renderWorkout(); status.textContent = '';
+  } catch (error) { status.textContent = error.message; }
+  finally { button.disabled = false; }
+});
+
 async function finishWorkout() {
-  if (pendingSaves > 0 || finishing || preparingFinish || addingSet) {
+  if (pendingSaves > 0 || finishing || preparingFinish || addingSet || removingExercise) {
     setPageError('Wait for your set changes to finish saving before finishing the workout.');
     return;
   }
@@ -515,10 +628,10 @@ async function finishWorkout() {
 }
 
 async function confirmFinishWorkout() {
-  if (finishing || pendingSaves > 0) return;
+  if (finishing || pendingSaves > 0 || removingExercise) return;
   finishing = true;
   finishDialog.close();
-  document.querySelectorAll('#workout-content input, #workout-content button, [data-logout]').forEach(control => { control.disabled = true; });
+  document.querySelectorAll('#workout-content input, #workout-content textarea, #workout-content button, [data-logout]').forEach(control => { control.disabled = true; });
   finishButton.disabled = true;
   pageStatus.textContent = 'Finishing workout…';
   setPageError('');
@@ -535,7 +648,7 @@ async function confirmFinishWorkout() {
     pageStatus.textContent = '';
     setPageError(`Could not finish your workout. ${error.message}`);
     finishing = false;
-    document.querySelectorAll('#workout-content input, #workout-content button, [data-logout]').forEach(control => { control.disabled = false; });
+    document.querySelectorAll('#workout-content input, #workout-content textarea, #workout-content button, [data-logout]').forEach(control => { control.disabled = false; });
   }
 }
 
@@ -604,13 +717,17 @@ window.addEventListener('pageshow', event => {
 
     document.body.dataset.auth = 'ready';
 
+    await loadExerciseCatalog();
     if (workoutDraft.mode === 'empty') {
-      await loadExerciseCatalog();
       await refreshWorkoutDetails(); // sets already saved, for example after a refresh
+      applyRemovedExercises();
       includeLoggedExercises();
     } else {
       await ensureTargetSets();
+      includeLoggedExercises();
     }
+    savedNotes = workoutDetails.notes || '';
+    notesInput.value = savedNotes;
     renderWorkout();
     pageStatus.textContent = '';
 

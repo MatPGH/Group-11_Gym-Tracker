@@ -6,6 +6,7 @@
 <title>Profile | Gym Tracker</title>
 <link rel="stylesheet" href="dashboard-profile.css">
 <script src="api.js" defer></script>
+<script src="profile-extras.js" defer></script>
 <script src="dashboard-profile.js" defer>
 </script>
 </head>
@@ -13,8 +14,9 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
 <header class="topbar">
-<a class="back-link" href="index.html">← Dashboard</a>
-<span class="brand">Gym Tracker</span>
+  <a class="brand" href="index.html">Gym Tracker</a>
+  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <button class="text-button" data-logout type="button">Log Out</button>
 </header>
 <main id="main">
 <div class="page-heading">
@@ -23,12 +25,14 @@
 <p>Make your training feel like you.</p>
 </div>
 <p id="page-status" class="status" role="status">Loading your account…</p>
-<section class="profile-card card" aria-label="Profile picture placeholder">
-<div class="avatar" aria-hidden="true">●<span>◡</span>
-</div>
+<section class="profile-card card" aria-label="Profile picture">
+<div class="avatar"><img id="profile-picture" alt="Your profile picture" hidden><span id="picture-placeholder" aria-hidden="true">☺</span></div>
 <h2 id="display-name" data-user-name>Your name</h2>
-<p>Profile picture placeholder</p>
-<button class="text-button" data-feature="Profile picture">Change picture</button>
+<p id="picture-help">Choose a PNG, JPEG, or WebP image up to 5 MB.</p>
+<label for="picture-file">Change picture</label>
+<input type="file" id="picture-file" accept="image/png,image/jpeg,image/webp" aria-describedby="picture-help">
+<button class="text-button" id="remove-picture" type="button" disabled>Remove picture</button>
+<p id="picture-status" class="status" role="status" aria-live="polite"></p>
 </section>
 <form id="profile-form" class="card settings">
 <h2>Personal settings</h2>
@@ -56,9 +60,9 @@
 <h2 id="account-heading">Account</h2>
 <button class="account-action" data-logout>Log Out <span aria-hidden="true">→</span>
 </button>
-<button class="account-action danger" data-feature="Delete Account">Delete Account <span aria-hidden="true">→</span>
+<button class="account-action danger" id="delete-account" type="button">Delete Account <span aria-hidden="true">→</span>
 </button>
-<p class="field-help">Use Log Out to end your session. Account deletion is not available yet.</p>
+<p class="field-help">Deleting your account permanently removes your profile, routines, workouts, and body-weight history.</p>
 </section>
 </main>
 <nav class="bottom-nav" aria-label="Main navigation">
@@ -72,13 +76,16 @@
 </a>
 </nav>
 </div>
-<dialog id="feature-dialog" aria-labelledby="dialog-title">
-<h2 id="dialog-title">
-</h2>
-<p id="dialog-message">
-</p>
-<form method="dialog">
-<button class="primary">Got it</button>
+<dialog id="delete-account-dialog" aria-labelledby="delete-account-title" aria-describedby="delete-account-help">
+<h2 id="delete-account-title">Delete your account?</h2>
+<p id="delete-account-help">This permanently deletes your account and all its saved data. This cannot be undone.</p>
+<form id="delete-account-form" class="settings">
+<label for="delete-password">Current password</label>
+<input id="delete-password" type="password" autocomplete="current-password" required>
+<label for="delete-confirmation">Type DELETE to confirm</label>
+<input id="delete-confirmation" type="text" autocomplete="off" pattern="DELETE" required>
+<p id="delete-account-status" class="status" role="status" aria-live="polite"></p>
+<div class="dialog-actions"><button type="button" id="cancel-delete-account" class="text-button" autofocus>Cancel</button><button type="submit" class="primary danger">Delete permanently</button></div>
 </form>
 </dialog>
 </body>

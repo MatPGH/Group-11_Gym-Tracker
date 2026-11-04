@@ -1,5 +1,4 @@
 // Account routes (FR-01 to FR-03).
-// Trello card: "Make registration, login, and logout work - Wasif"
 const express = require('express');
 const authController = require('../controllers/authController');
 const requireAuth = require('../middleware/requireAuth');

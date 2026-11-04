@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS workouts (
   start_time TEXT NOT NULL,
   end_time TEXT,
   notes TEXT,
+  weight_unit TEXT DEFAULT 'lbs' CHECK (weight_unit IS NULL OR weight_unit = 'lbs'),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (routine_id) REFERENCES routines(id)
 );
@@ -62,6 +63,18 @@ CREATE TABLE IF NOT EXISTS body_weight_entries (
   user_id INTEGER NOT NULL,
   date TEXT NOT NULL,
   weight REAL NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS workout_removed_exercises (
+  workout_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+  exercise_id INTEGER NOT NULL REFERENCES exercises(id),
+  PRIMARY KEY (workout_id, exercise_id)
+);
+
+CREATE TABLE IF NOT EXISTS profile_pictures (
+  user_id INTEGER PRIMARY KEY,
+  image TEXT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
