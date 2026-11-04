@@ -23,6 +23,11 @@
 @media (max-width: 600px) { .workout-modes, .workout-catalog { grid-template-columns: 1fr; } .workout-mode { gap: 4px; padding: 16px; } .workout-mode .eyebrow { margin: 0; } }
 
 .active-workout-summary { margin-bottom: 22px; }
+.workout-notes { margin-top: 22px; }
+.workout-notes textarea { display: block; width: 100%; resize: vertical; margin: 10px 0; min-height: 100px; padding: 12px; border: 1px solid #56604e; border-radius: 8px; background: #0d100d; color: var(--text); font: inherit; }
+.workout-notes textarea:focus-visible { outline: 3px solid var(--lime); outline-offset: 4px; }
+#legacy-workout-unit { min-height: 44px; max-width: 100%; margin: 12px 8px 12px 0; font: inherit; }
+.active-exercise-heading .danger { margin-left: auto; min-height: 44px; }
 .workout-progress { color: var(--text); font-weight: 700; margin-bottom: 12px; }
 .progress-track { height: 9px; overflow: hidden; border-radius: 99px; background: #30372e; }
 .progress-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--lime); transition: width 180ms ease; }

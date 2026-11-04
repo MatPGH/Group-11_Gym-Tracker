@@ -15,12 +15,10 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="index.html">Gym Tracker</a>
-      <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile">
-        <span aria-hidden="true">☺</span>
-      </a>
-      <button class="text-button" data-logout type="button">Log Out</button>
-    </header>
+  <a class="brand" href="index.html">Gym Tracker</a>
+  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <button class="text-button" data-logout type="button">Log Out</button>
+</header>
 
     <main id="main">
       <div class="page-heading">
@@ -43,7 +41,24 @@
           <p id="workout-description" class="field-help"></p>
         </div>
 
+        <section id="legacy-weight-notice" class="card" hidden aria-labelledby="legacy-weight-heading">
+          <h2 id="legacy-weight-heading">Confirm this workout's original units</h2>
+          <p>This older workout did not record its weight unit. Choose the unit you used when entering its weights.</p>
+          <label for="legacy-workout-unit">Original weight unit</label>
+          <select id="legacy-workout-unit"><option value="">Choose original unit</option><option value="lbs">Pounds (lbs)</option><option value="kg">Kilograms (kg)</option></select>
+          <button id="confirm-workout-unit" class="primary" type="button">Confirm original unit</button>
+          <p id="legacy-unit-status" class="status" role="status"></p>
+        </section>
         <div id="active-exercises" class="active-exercises"></div>
+
+        <section class="card workout-notes" aria-labelledby="notes-heading">
+          <h2 id="notes-heading">Session notes</h2>
+          <label for="workout-notes">Optional notes for this workout</label>
+          <textarea id="workout-notes" rows="4" maxlength="2000" placeholder="How did your workout feel?" aria-describedby="notes-help"></textarea>
+          <p id="notes-help" class="field-help">Up to 2,000 characters. Notes also save when you finish your workout.</p>
+          <button id="save-workout-notes" type="button" class="text-button">Save notes</button>
+          <p id="notes-status" class="status" role="status" aria-live="polite"></p>
+        </section>
 
         <section id="empty-workout-builder" class="card" hidden>
           <h2>Build your workout</h2>
@@ -87,6 +102,12 @@
       <button id="cancel-finish" type="button" class="text-button" autofocus>Keep training</button>
       <button id="confirm-finish" type="button" class="primary">Save workout</button>
     </div>
+  </dialog>
+  <dialog id="remove-exercise-dialog" aria-labelledby="remove-exercise-title">
+    <h2 id="remove-exercise-title">Remove exercise?</h2>
+    <p id="remove-exercise-message"></p>
+    <p id="remove-exercise-status" class="status" role="status" aria-live="polite"></p>
+    <div class="dialog-actions"><button id="cancel-remove-exercise" type="button" class="text-button" autofocus>Keep exercise</button><button id="confirm-remove-exercise" type="button" class="primary danger">Remove exercise</button></div>
   </dialog>
 </body>
 </html>

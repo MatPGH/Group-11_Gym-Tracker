@@ -37,3 +37,12 @@ test('zero-weight bodyweight sets are valid data, and tied dates sort consistent
   assert.deepEqual(result.workouts.map(w => w.id), [2, 1]);
   assert.equal(result.max, 0); assert.equal(result.average, 0);
 });
+
+test('unconfirmed legacy units stay in history but cannot distort chart metrics', () => {
+  const old = {...workout(1, '2026-11-01T00:00:00Z', [[1, 999]]), weight_unit: null};
+  const known = {...workout(2, '2026-11-02T00:00:00Z', [[1, 100]]), weight_unit: 'lbs'};
+  const result = select([old, known], 'all', 'all', now);
+  assert.equal(result.workouts.length, 2);
+  assert.deepEqual(result.points.map(point => point.weight), [100]);
+  assert.equal(result.average, 100);
+});

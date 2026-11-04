@@ -9,9 +9,10 @@ const progressData = {
       .map(w => ({ ...w, matchingSets: w.sets.filter(s => exerciseId === 'all' || String(s.exercise_id) === String(exerciseId)) }))
       .filter(w => exerciseId === 'all' || w.matchingSets.length)
       .sort((a, b) => new Date(b.start_time) - new Date(a.start_time) || b.id - a.id);
-    const weights = selected.flatMap(w => w.matchingSets.map(s => s.weight));
+    const known = selected.filter(w => w.weight_unit !== null);
+    const weights = known.flatMap(w => w.matchingSets.map(s => s.weight));
     return { workouts: selected,
-      points: selected.filter(w => w.matchingSets.length).slice().reverse().map(w => ({
+      points: known.filter(w => w.matchingSets.length).slice().reverse().map(w => ({
         id: w.id, date: w.start_time, weight: Math.max(...w.matchingSets.map(s => s.weight))
       })),
       max: weights.length ? Math.max(...weights) : null,

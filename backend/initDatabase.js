@@ -15,12 +15,18 @@ const db = new sqlite3.Database(dbPath, (err) => {
     return;
   }
 
-  db.exec(schema, (err) => {
+  db.exec(schema, async (err) => {
     if (err) {
       console.error('Error creating tables:', err.message);
       process.exitCode = 1;
     } else {
-      console.log('Database and tables created successfully!');
+      try {
+        await require('./migrateDatabase')(db);
+        console.log('Database and tables created successfully!');
+      } catch (error) {
+        console.error('Error updating tables:', error.message);
+        process.exitCode = 1;
+      }
     }
 
     db.close();

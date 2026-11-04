@@ -1,6 +1,4 @@
 // Routine routes (FR-06 to FR-08).
-// Trello cards: "Connect Routine pages to the backend - Wasif" and
-// "Make routines save, edit, and delete in SQLite - Taylor"
 const express = require('express');
 const requireAuth = require('../middleware/requireAuth');
 const routineController = require('../controllers/routineController');

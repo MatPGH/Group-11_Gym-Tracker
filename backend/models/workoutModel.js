@@ -1,5 +1,17 @@
 const sqlite3 = require('sqlite3');
 const db = require('../database');
+const KG_TO_LBS = 2.20462;
+const storedWeight = (weight, unit) => unit === 'kg' ? weight * KG_TO_LBS : weight;
+const displayWeight = (weight, unit) => unit === 'kg' ? weight / KG_TO_LBS : weight;
+async function userUnit(userId, connection = db) {
+  return (await getRow(connection, 'SELECT weight_unit FROM users WHERE id = ?', [userId]))?.weight_unit || 'lbs';
+}
+async function requireActive(connection, workoutId, userId) {
+  const workout = await findOwnWorkout(workoutId, userId, connection);
+  if (!workout) throw notFoundError('Workout not found.');
+  if (workout.end_time !== null) throw Object.assign(new Error('This workout has already been finished.'), { status: 400 });
+  return workout;
+}
 
 function runSql(connection, sql, params = []) {
   return new Promise((resolve, reject) => {
@@ -86,8 +98,8 @@ function create(userId, routineId = null) {
     const startTime = new Date().toISOString();
     const result = await runSql(
       connection,
-      `INSERT INTO workouts (user_id, routine_id, start_time)
-       VALUES (?, ?, ?)`,
+      `INSERT INTO workouts (user_id, routine_id, start_time, weight_unit)
+       VALUES (?, ?, ?, 'lbs')`,
       [userId, routineId, startTime]
     );
 
@@ -104,21 +116,19 @@ function create(userId, routineId = null) {
 async function findOwnWorkout(workoutId, userId, connection = db) {
   return getRow(
     connection,
-    'SELECT id, end_time FROM workouts WHERE id = ? AND user_id = ?',
+    'SELECT id, end_time, weight_unit FROM workouts WHERE id = ? AND user_id = ?',
     [workoutId, userId]
   );
 }
 
 function addSet(workoutId, userId, data) {
   return transaction(async connection => {
-    const workout = await findOwnWorkout(workoutId, userId, connection);
-
-    if (!workout) throw notFoundError('Workout not found.');
-    if (workout.end_time !== null) {
-      const err = new Error('This workout has already been finished.');
-      err.status = 400;
-      throw err;
-    }
+    const active = await requireActive(connection, workoutId, userId);
+    if (!active.weight_unit) throw Object.assign(new Error('Confirm the original weight unit before editing this older workout.'), { status: 409 });
+    const unit = data.weightUnit || await userUnit(userId, connection);
+    const removed = await getRow(connection, 'SELECT 1 FROM workout_removed_exercises WHERE workout_id = ? AND exercise_id = ?', [workoutId, data.exerciseId]);
+    if (removed && !data.readd) throw Object.assign(new Error('This exercise was removed. Add it again from the exercise picker.'), { status: 409 });
+    if (data.readd) await runSql(connection, 'DELETE FROM workout_removed_exercises WHERE workout_id = ? AND exercise_id = ?', [workoutId, data.exerciseId]);
 
     const exercise = await getRow(
       connection,
@@ -141,7 +151,7 @@ function addSet(workoutId, userId, data) {
         workoutId,
         data.exerciseId,
         data.setNumber,
-        data.weight,
+        storedWeight(data.weight, unit),
         data.reps,
         data.completed ? 1 : 0
       ]
@@ -161,14 +171,9 @@ function addSet(workoutId, userId, data) {
 
 function updateSet(workoutId, userId, setId, data) {
   return transaction(async connection => {
-    const workout = await findOwnWorkout(workoutId, userId, connection);
-
-    if (!workout) throw notFoundError('Workout not found.');
-    if (workout.end_time !== null) {
-      const err = new Error('This workout has already been finished.');
-      err.status = 400;
-      throw err;
-    }
+    const active = await requireActive(connection, workoutId, userId);
+    if (!active.weight_unit) throw Object.assign(new Error('Confirm the original weight unit before editing this older workout.'), { status: 409 });
+    const unit = data.weightUnit || await userUnit(userId, connection);
 
     const existingSet = await getRow(
       connection,
@@ -185,7 +190,7 @@ function updateSet(workoutId, userId, setId, data) {
       `UPDATE workout_sets
        SET weight = ?, reps = ?, completed = ?
        WHERE id = ? AND workout_id = ?`,
-      [data.weight, data.reps, data.completed ? 1 : 0, setId, workoutId]
+      [storedWeight(data.weight, unit), data.reps, data.completed ? 1 : 0, setId, workoutId]
     );
 
     return {
@@ -231,7 +236,6 @@ function finishWorkout(workoutId, userId) {
     // Only sets the user marked done are kept. Unchecked rows are placeholders
     // the page created from the routine's targets, not lifts that happened, so
     // they must not count in history or progress.
-    // Trello card: "Make workout logging and Finish Workout work - Wasif"
     const removed = await runSql(
       connection,
       'DELETE FROM workout_sets WHERE workout_id = ? AND completed = 0',
@@ -254,7 +258,7 @@ function finishWorkout(workoutId, userId) {
 async function getWorkoutDetails(workoutId, userId) {
   const workout = await getRow(
     db,
-    `SELECT id, routine_id, start_time, end_time, notes
+    `SELECT id, routine_id, start_time, end_time, notes, weight_unit
      FROM workouts
      WHERE id = ? AND user_id = ?`,
     [workoutId, userId]
@@ -279,19 +283,22 @@ async function getWorkoutDetails(workoutId, userId) {
     [workoutId]
   );
 
+  const unit = await userUnit(userId);
   const sets = rows.map(set => ({
     ...set,
+    weight: workout.weight_unit ? displayWeight(set.weight, unit) : set.weight,
     completed: Boolean(set.completed)
   }));
 
-  return { ...workout, sets };
+  const removed = await getAll(db, 'SELECT exercise_id FROM workout_removed_exercises WHERE workout_id = ?', [workoutId]);
+  return { ...workout, display_unit: workout.weight_unit ? unit : null, removed_exercise_ids: removed.map(row => row.exercise_id), sets };
 }
 
 // Load only the signed-in user's finished sessions, including their logged sets.
 // Details/notes remain available through the existing owner-checked detail route.
 async function completedHistory(userId) {
   const workouts = await getAll(db,
-    `SELECT w.id, w.routine_id, w.start_time, w.end_time, r.name AS routine_name
+    `SELECT w.id, w.routine_id, w.start_time, w.end_time, w.weight_unit, r.name AS routine_name
      FROM workouts w LEFT JOIN routines r ON w.routine_id = r.id
      WHERE w.user_id = ? AND w.end_time IS NOT NULL
      ORDER BY datetime(w.start_time) DESC, w.id DESC`, [userId]);
@@ -303,8 +310,41 @@ async function completedHistory(userId) {
      WHERE w.user_id = ? AND w.end_time IS NOT NULL AND s.completed = 1
      ORDER BY s.id`, [userId]);
   const grouped = new Map(workouts.map(w => [w.id, { ...w, sets: [] }]));
-  for (const set of sets) grouped.get(set.workout_id)?.sets.push(set);
+  const unit = await userUnit(userId);
+  for (const set of sets) {
+    const workout = grouped.get(set.workout_id);
+    if (workout) workout.sets.push({ ...set, weight: workout.weight_unit ? displayWeight(set.weight, unit) : set.weight });
+  }
   return [...grouped.values()];
 }
 
-module.exports = {create, addSet, updateSet, listHistory, finishWorkout, getWorkoutDetails, completedHistory};
+function updateNotes(workoutId, userId, notes) {
+  return transaction(async connection => {
+    await requireActive(connection, workoutId, userId);
+    await runSql(connection, 'UPDATE workouts SET notes = ? WHERE id = ? AND user_id = ?', [notes, workoutId, userId]);
+    return { notes };
+  });
+}
+
+function removeExercise(workoutId, userId, exerciseId) {
+  return transaction(async connection => {
+    await requireActive(connection, workoutId, userId);
+    const result = await runSql(connection, 'DELETE FROM workout_sets WHERE workout_id = ? AND exercise_id = ?', [workoutId, exerciseId]);
+    if (!result.changes) throw notFoundError('Exercise not found in this workout.');
+    await runSql(connection, 'INSERT OR IGNORE INTO workout_removed_exercises(workout_id,exercise_id) VALUES(?,?)', [workoutId, exerciseId]);
+    return { removed_sets: result.changes };
+  });
+}
+
+function confirmWeightUnit(workoutId, userId, unit) {
+  return transaction(async connection => {
+    const workout = await findOwnWorkout(workoutId, userId, connection);
+    if (!workout) throw notFoundError('Workout not found.');
+    if (workout.weight_unit) throw Object.assign(new Error('The original unit has already been confirmed.'), { status: 409 });
+    if (unit === 'kg') await runSql(connection, 'UPDATE workout_sets SET weight = weight * ? WHERE workout_id = ?', [KG_TO_LBS, workoutId]);
+    await runSql(connection, "UPDATE workouts SET weight_unit = 'lbs' WHERE id = ? AND user_id = ?", [workoutId, userId]);
+    return { message: 'Original unit confirmed.' };
+  });
+}
+
+module.exports = {create, addSet, updateSet, listHistory, finishWorkout, getWorkoutDetails, completedHistory, updateNotes, removeExercise, confirmWeightUnit};

@@ -1,16 +1,4 @@
 'use strict';
-const dialog = document.querySelector('#feature-dialog');
-const messages = {
-  'Profile picture': 'This is a picture placeholder. Image upload is not available yet.',
-  'Delete Account': 'Account deletion is not available in this preview. No account has been deleted.'
-};
-document.querySelectorAll('[data-feature]').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelector('#dialog-title').textContent = button.dataset.feature;
-    document.querySelector('#dialog-message').textContent = messages[button.dataset.feature];
-    dialog.showModal();
-  });
-});
 const form = document.querySelector('#profile-form');
 const pageStatus = document.querySelector('#page-status');
 function setBusy(busy) {

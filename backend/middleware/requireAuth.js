@@ -3,8 +3,8 @@
 //   const requireAuth = require('../middleware/requireAuth');
 //   router.use(requireAuth);
 // Inside the controller, the signed-in user's id is req.session.userId.
-module.exports = (req, res, next) => {
-  if (req.session && req.session.userId) {
+module.exports = async (req, res, next) => {
+  if (req.session && req.session.userId && await require('../models/userModel').findById(req.session.userId)) {
     return next();
   }
   return res.status(401).json({ error: 'Please sign in first.' });

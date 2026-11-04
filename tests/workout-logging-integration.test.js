@@ -1,5 +1,4 @@
 // End-to-end check of workout logging and Finish Workout with a real server and SQLite.
-// Trello card: "Make workout logging and Finish Workout work - Wasif"
 // Acceptance: active workout data is sent to the backend and saved when finished.
 // Follows what the Active Workout page does: create sets, edit them as the user
 // types (PUT), mark them done, then finish. Run with: npm test

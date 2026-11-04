@@ -13,7 +13,7 @@ async function getWeightHistory(userId, unit) {
     `SELECT id, date, weight
      FROM body_weight_entries
      WHERE user_id = ?
-     ORDER BY date DESC, id DESC`,
+     ORDER BY date ASC, id ASC`,
     [userId]
   );
 
@@ -46,4 +46,17 @@ async function addWeightEntry(userId, date, weight, unit) {
     );
   });
 }
-module.exports = { getWeightHistory, addWeightEntry };
+function updateWeightEntry(userId, date, weight, unit, id) {
+  return new Promise((resolve, reject) => db.run(
+    'UPDATE body_weight_entries SET date = ?, weight = ? WHERE id = ? AND user_id = ?',
+    [date, unit === 'kg' ? weight * 2.20462 : weight, id, userId],
+    function (error) { error ? reject(error) : resolve(this.changes ? { id, date, weight } : null); }
+  ));
+}
+function deleteWeightEntry(userId, id) {
+  return new Promise((resolve, reject) => db.run(
+    'DELETE FROM body_weight_entries WHERE id = ? AND user_id = ?', [id, userId],
+    function (error) { error ? reject(error) : resolve(this.changes); }
+  ));
+}
+module.exports = { getWeightHistory, addWeightEntry, updateWeightEntry, deleteWeightEntry };

@@ -8,6 +8,9 @@ const historyList = document.querySelector('#history-list');
 let workouts = [], unit = 'lbs', page = 1, selection = null, detailRequest = 0, lastDetailButton = null;
 const PAGE_SIZE = 5;
 let bodyWeightEntries = [];
+let savingBodyWeight = false;
+let editingWeightId = null, deletingWeightId = null, deletingWeight = false;
+let originalEditedWeight = null;
 const bodyWeightForm = document.querySelector('#body-weight-form');
 const number = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
 const date = (value, options = {}) => new Date(value).toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short', day: 'numeric', ...options });
@@ -35,48 +38,119 @@ function renderBodyWeightHistory() {
   bodyWeightEntries.forEach(entry => {
     const row = document.createElement('tr');
 
-    const dateCell = node('td', date(entry.date));
+    const dateCell = node('td', date(entry.date, { year: 'numeric' }));
     const weightCell = node('td', `${number(entry.weight)} ${unit}`);
 
-    row.append(dateCell, weightCell);
+    const actions = node('td');
+    const edit = node('button', 'Edit', 'text-button');
+    edit.type = 'button';
+    edit.setAttribute('aria-label', `Edit weight for ${entry.date}`);
+    edit.addEventListener('click', () => {
+      if (savingBodyWeight) return;
+      editingWeightId = entry.id;
+      document.querySelector('#body-weight-date').value = entry.date;
+      document.querySelector('#body-weight-input').value = Math.round(entry.weight * 10) / 10;
+      originalEditedWeight = { value: entry.weight, display: document.querySelector('#body-weight-input').value };
+      document.querySelector('#save-body-weight').textContent = 'Save Changes';
+      document.querySelector('#cancel-weight-edit').hidden = false;
+      document.querySelector('#body-weight-status').textContent = `Editing entry for ${entry.date}.`;
+      document.querySelector('#body-weight-input').focus();
+    });
+    const remove = node('button', 'Delete', 'text-button danger');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `Delete weight for ${entry.date}`);
+    remove.addEventListener('click', () => {
+      if (savingBodyWeight) return;
+      deletingWeightId = entry.id;
+      document.querySelector('#delete-weight-description').textContent = `Delete ${number(entry.weight)} ${unit} recorded on ${date(entry.date, { year: 'numeric' })}? This cannot be undone.`;
+      document.querySelector('#delete-weight-status').textContent = '';
+      document.querySelector('#delete-weight-dialog').showModal();
+    });
+    actions.append(edit, remove);
+    row.append(dateCell, weightCell, actions);
     rows.append(row);
   });
 }
 bodyWeightForm.addEventListener('submit', async event => {
   event.preventDefault();
+  if (savingBodyWeight) return;
 
   const status = document.querySelector('#body-weight-status');
   const dateInput = document.querySelector('#body-weight-date');
   const weightInput = document.querySelector('#body-weight-input');
 
   const dateValue = dateInput.value;
-  const weightValue = Number(weightInput.value);
+  const weightValue = editingWeightId !== null && originalEditedWeight?.display === weightInput.value
+    ? originalEditedWeight.value : Number(weightInput.value);
 
   if (!dateValue || !Number.isFinite(weightValue) || weightValue <= 0) {
     status.textContent = 'Enter a valid date and weight.';
     return;
   }
 
+  savingBodyWeight = true;
+  const controls = bodyWeightForm.querySelectorAll('input, button');
+  controls.forEach(control => { control.disabled = true; });
   status.textContent = 'Saving weight...';
 
   try {
-    await gymApi('/body-weight', {
-      method: 'POST',
+    await gymApi(editingWeightId === null ? '/body-weight' : `/body-weight/${editingWeightId}`, {
+      method: editingWeightId === null ? 'POST' : 'PUT',
       body: JSON.stringify({
         date: dateValue,
         weight: weightValue
       })
     });
 
-    const weightData = await gymApi('/body-weight');
-    bodyWeightEntries = weightData.entries;
-
-    renderBodyWeightHistory();
-    bodyWeightForm.reset();
-
+    resetWeightForm();
     status.textContent = 'Weight entry saved successfully.';
+    try { await refreshWeights(); }
+    catch (error) { status.textContent = `Weight saved. Refresh the page to reload history. ${error.message}`; }
   } catch (error) {
     status.textContent = error.message || 'Unable to save weight entry.';
+  } finally {
+    savingBodyWeight = false;
+    controls.forEach(control => { control.disabled = false; });
+  }
+});
+function resetWeightForm() {
+  editingWeightId = null;
+  originalEditedWeight = null;
+  bodyWeightForm.reset();
+  document.querySelector('#save-body-weight').textContent = 'Save Weight';
+  document.querySelector('#cancel-weight-edit').hidden = true;
+}
+async function refreshWeights() {
+  bodyWeightEntries = (await gymApi('/body-weight')).entries;
+  renderBodyWeightHistory();
+}
+document.querySelector('#cancel-weight-edit').addEventListener('click', () => {
+  if (savingBodyWeight) return;
+  resetWeightForm();
+  document.querySelector('#body-weight-status').textContent = 'Edit canceled.';
+});
+const deleteWeightDialog = document.querySelector('#delete-weight-dialog');
+document.querySelector('#cancel-delete-weight').addEventListener('click', () => deleteWeightDialog.close());
+deleteWeightDialog.addEventListener('cancel', event => { if (deletingWeight) event.preventDefault(); });
+document.querySelector('#confirm-delete-weight').addEventListener('click', async () => {
+  if (deletingWeight || deletingWeightId === null) return;
+  deletingWeight = true;
+  deleteWeightDialog.querySelectorAll('button').forEach(button => { button.disabled = true; });
+  const status = document.querySelector('#delete-weight-status');
+  status.textContent = 'Deleting entry…';
+  try {
+    await gymApi(`/body-weight/${deletingWeightId}`, { method: 'DELETE' });
+    if (editingWeightId === deletingWeightId) resetWeightForm();
+    deletingWeightId = null;
+    deleteWeightDialog.close();
+    document.querySelector('#body-weight-status').textContent = 'Weight entry deleted.';
+    document.querySelector('#body-weight-input').focus();
+    try { await refreshWeights(); }
+    catch (error) { document.querySelector('#body-weight-status').textContent = `Entry deleted. Refresh to reload history. ${error.message}`; }
+  } catch (error) { status.textContent = error.message; }
+  finally {
+    deletingWeight = false;
+    deleteWeightDialog.querySelectorAll('button').forEach(button => { button.disabled = false; });
   }
 });
 function drawChart() {
@@ -88,6 +162,7 @@ function drawChart() {
   empty.hidden = points.length > 0;
   document.querySelector('#chart-data').hidden = points.length === 0;
   empty.textContent = workouts.length ? 'No logged sets match these filters. Try another exercise or time range.' : 'Your progress starts with your first workout. Finish a workout to see your logged sets here.';
+  if (selection.workouts.some(workout => workout.weight_unit === null) && !points.length) empty.textContent = 'Open an older workout below and confirm its original weight unit to include it in your progress chart.';
   document.querySelector('#max-weight').textContent = selection.max === null ? '—' : `${number(selection.max)} ${unit}`;
   document.querySelector('#average-weight').textContent = selection.average === null ? '—' : `${number(selection.average)} ${unit}`;
   document.querySelector('#chart-caption').textContent = `Heaviest completed set per session · ${exerciseSelect.selectedOptions[0].textContent}. Summary values use all matching completed sets.`;
@@ -132,11 +207,12 @@ function renderHistory() {
     const when = node('span', date(workout.start_time), 'history-date'); when.append(node('small', new Date(workout.start_time).getUTCFullYear()));
     const description = node('span', undefined, 'history-description'), sets = workout.matchingSets;
     const weightText = sets.length ? `${sets.length} ${sets.length === 1 ? 'set' : 'sets'}: ${sets.slice(0, 4).map(s => number(s.weight)).join(', ')}${sets.length > 4 ? ', …' : ''} ${unit}` : 'No completed sets';
+    const summaryText = workout.weight_unit === null && sets.length ? `${sets.length} sets · original units unconfirmed` : weightText;
     const names = [...new Set(sets.map(s => s.exercise_name))];
-    description.append(node('strong', weightText), node('small', workout.routine_name || names.join(' · ') || `Workout #${workout.id}`));
+    description.append(node('strong', summaryText), node('small', workout.routine_name || names.join(' · ') || `Workout #${workout.id}`));
     const arrow = node('span', '›', 'history-chevron'); arrow.setAttribute('aria-hidden', 'true');
     button.append(when, description, arrow);
-    button.setAttribute('aria-label', `View workout from ${date(workout.start_time, { year: 'numeric' })}, ${weightText}`);
+    button.setAttribute('aria-label', `View workout from ${date(workout.start_time, { year: 'numeric' })}, ${summaryText}`);
     button.addEventListener('click', () => openDetails(workout.id, button)); historyList.append(button);
   }
   document.querySelector('#history-pagination').hidden = items.length <= PAGE_SIZE;
@@ -162,13 +238,38 @@ async function openDetails(id, button) {
     const time = value => new Date(value).toLocaleTimeString(undefined, { timeZone: 'UTC', hour: 'numeric', minute: '2-digit' });
     body.append(node('p', `${time(workout.start_time)} – ${time(workout.end_time)} UTC · ${duration < 1 ? 'Under 1 minute' : `${duration} min`}`));
     const sets = workout.sets.filter(s => s.completed);
+    const workoutUnit = workout.weight_unit === null ? 'unit unconfirmed' : (workout.display_unit || unit);
+    if (workout.weight_unit === null) {
+      const form = node('form', undefined, 'legacy-unit-form');
+      const prompt = node('p', 'This older workout did not record its unit. Choose the unit originally used for these weights so they can convert correctly.');
+      const label = node('label', 'Original weight unit');
+      const select = node('select'); select.id = `legacy-unit-${id}`; label.htmlFor = select.id;
+      for (const [value, text] of [['', 'Choose original unit'], ['lbs', 'Pounds (lbs)'], ['kg', 'Kilograms (kg)']]) {
+        const option = node('option', text); option.value = value; select.append(option);
+      }
+      select.required = true;
+      const confirm = node('button', 'Confirm original unit', 'primary'); confirm.type = 'submit';
+      const status = node('p', undefined, 'status'); status.setAttribute('role', 'status');
+      form.append(prompt, label, select, confirm, status); body.append(form);
+      let confirming = false;
+      form.addEventListener('submit', async event => {
+        event.preventDefault(); if (confirming || !select.value) return;
+        confirming = true; confirm.disabled = true; select.disabled = true; status.textContent = 'Saving original unit…';
+        try {
+          await gymApi(`/workouts/${id}/weight-unit`, { method: 'PUT', body: JSON.stringify({ weightUnit: select.value }) });
+          await loadProgress();
+          await openDetails(id, null);
+        } catch (error) { status.textContent = error.message; }
+        finally { confirming = false; confirm.disabled = false; select.disabled = false; }
+      });
+    }
     if (!sets.length) body.append(node('p', 'This workout has no completed sets.'));
     for (const exerciseId of new Set(sets.map(s => s.exercise_id))) {
       const exerciseSets = sets.filter(s => s.exercise_id === exerciseId);
       body.append(node('h3', exerciseSets[0].exercise_name));
       const wrap = node('div', undefined, 'detail-table-wrap'), table = node('table'), head = node('thead'), row = node('tr');
       table.append(node('caption', `${exerciseSets[0].exercise_name} · completed sets`));
-      for (const title of ['Set', `Weight (${unit})`, 'Reps']) { const th = node('th', title); th.scope = 'col'; row.append(th); }
+      for (const title of ['Set', `Weight (${workoutUnit})`, 'Reps']) { const th = node('th', title); th.scope = 'col'; row.append(th); }
       head.append(row); table.append(head);
       const tbody = node('tbody');
       for (const set of exerciseSets) { const tr = node('tr'); tr.append(node('td', set.set_number), node('td', number(set.weight)), node('td', set.reps)); tbody.append(tr); }

@@ -9,7 +9,11 @@
 <body data-auth="loading">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell progress-shell">
-  <header class="topbar"><a class="brand" href="index.html">Gym Tracker</a><a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><span aria-hidden="true">&#128100;</span></a><button class="text-button" data-logout type="button">Log Out</button></header>
+  <header class="topbar">
+  <a class="brand" href="index.html">Gym Tracker</a>
+  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <button class="text-button" data-logout type="button">Log Out</button>
+</header>
   <main id="main">
     <div class="page-heading"><p class="eyebrow">EVERY SESSION COUNTS</p><h1>View Your Progress!</h1></div>
     <p id="page-status" class="status" role="status" aria-live="polite">Loading your workouts…</p>
@@ -28,7 +32,7 @@
       </section>
       <section class="card body-weight-card" aria-labelledby="body-weight-heading">
         <h2 id="body-weight-heading">Body Weight Tracking</h2>
-        <p class="field-help">Record your weight and track changes over time.</p>
+        <p class="field-help">Record your weight and track changes over time. History runs from oldest to newest date.</p>
 
         <form id="body-weight-form">
           <label for="body-weight-input">Weight (<span id="body-weight-unit">lbs</span>)</label>
@@ -44,7 +48,7 @@
           <label for="body-weight-date">Date</label>
           <input type="date" id="body-weight-date" required>
 
-          <button type="submit" class="primary">Save Weight</button>
+          <div class="dialog-actions"><button type="submit" class="primary" id="save-body-weight">Save Weight</button><button type="button" class="text-button" id="cancel-weight-edit" hidden>Cancel edit</button></div>
         </form>
 
         <p id="body-weight-status" class="status" role="status" aria-live="polite"></p>
@@ -58,6 +62,7 @@
                 <tr>
                   <th scope="col">Date</th>
                   <th scope="col">Weight</th>
+                  <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody id="body-weight-rows"></tbody>
@@ -79,5 +84,11 @@
   </main>
   <nav class="bottom-nav" aria-label="Main navigation"><a href="index.html">&#8962;<span>Dashboard</span></a><a href="workout.html">&#65291;<span>Start Workout</span></a><a href="routines.html">&#9783;<span>Routines</span></a><a href="progress.html" aria-current="page">&#9637;<span>View Progress</span></a></nav>
 </div>
+<dialog id="delete-weight-dialog" aria-labelledby="delete-weight-title">
+  <h2 id="delete-weight-title">Delete weight entry?</h2>
+  <p id="delete-weight-description"></p>
+  <p id="delete-weight-status" class="status" role="status" aria-live="polite"></p>
+  <div class="dialog-actions"><button id="cancel-delete-weight" class="text-button" type="button" autofocus>Cancel</button><button id="confirm-delete-weight" class="primary danger" type="button">Delete entry</button></div>
+</dialog>
 </body>
 </html>
