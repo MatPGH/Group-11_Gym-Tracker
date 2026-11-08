@@ -5,17 +5,18 @@
   <title>View Progress | Gym Tracker</title>
   <link rel="stylesheet" href="dashboard-profile.css"><link rel="stylesheet" href="progress.css">
   <script src="api.js" defer></script><script src="progress-data.js" defer></script><script src="progress.js" defer></script>
+<link rel="stylesheet" href="premium.css">
 </head>
 <body data-auth="loading">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell progress-shell">
   <header class="topbar">
   <a class="brand" href="index.html">Gym Tracker</a>
-  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><svg class="icon" aria-hidden="true"><use href="icons.svg#user"></use></svg></a>
   <button class="text-button" data-logout type="button">Log Out</button>
 </header>
   <main id="main">
-    <div class="page-heading"><p class="eyebrow">EVERY SESSION COUNTS</p><h1>View Your Progress!</h1></div>
+    <div class="page-heading"><p class="eyebrow">YOUR TRAINING LOG</p><h1>Your work. Measured.</h1></div>
     <p id="page-status" class="status" role="status" aria-live="polite">Loading your workouts…</p>
     <button id="retry-progress" type="button" class="text-button" hidden>Try again</button>
     <div id="progress-content" hidden>
@@ -25,10 +26,20 @@
         <button class="primary" type="submit">Search</button>
       </form>
       <section class="card progress-chart-card" aria-label="Exercise progress">
-        <div class="progress-metrics"><div><span>Current Max</span><strong id="max-weight">—</strong></div><div><span>Average Weight</span><strong id="average-weight">—</strong></div></div>
+        <div class="progress-metrics"><div><span>Best lift in range</span><strong id="max-weight">-</strong></div><div><span>Average set weight</span><strong id="average-weight">-</strong></div></div>
         <p id="chart-caption" class="field-help"></p>
         <div id="chart-empty" class="progress-empty" hidden></div><div id="chart-container"></div>
         <details id="chart-data" class="chart-data" hidden><summary>View chart data</summary><div class="detail-table-wrap"><table><caption>Heaviest completed set per session</caption><thead><tr><th scope="col">Date</th><th scope="col">Weight</th></tr></thead><tbody id="chart-data-rows"></tbody></table></div></details>
+      </section>
+      <section id="workout-history" class="card history-card" aria-labelledby="history-heading" tabindex="-1">
+        <div class="history-heading"><h2 id="history-heading">Workout History</h2><span id="history-count"></span></div>
+        <p id="history-empty" class="progress-empty" hidden></p><div id="history-list"></div>
+        <nav id="history-pagination" class="history-pagination" aria-label="Workout history pages" hidden><button id="history-previous" class="text-button" type="button">← Previous</button><span id="history-page" role="status"></span><button id="history-next" class="text-button" type="button">Next →</button></nav>
+        <p class="history-note">Only finished workouts appear here. Dates use UTC.</p>
+      </section>
+      <section id="workout-details" class="card workout-details" aria-labelledby="details-heading" tabindex="-1" hidden>
+        <div class="section-heading"><h2 id="details-heading">Workout details</h2><button id="close-details" class="text-button" type="button">Close</button></div>
+        <p id="details-status" class="status" role="status" aria-live="polite"></p><div id="details-content"></div>
       </section>
       <section class="card body-weight-card" aria-labelledby="body-weight-heading">
         <h2 id="body-weight-heading">Body Weight Tracking</h2>
@@ -70,19 +81,14 @@
           </div>
         </div>
       </section>
-      <section id="workout-history" class="card history-card" aria-labelledby="history-heading" tabindex="-1">
-        <div class="history-heading"><h2 id="history-heading">Workout History</h2><span id="history-count"></span></div>
-        <p id="history-empty" class="progress-empty" hidden></p><div id="history-list"></div>
-        <nav id="history-pagination" class="history-pagination" aria-label="Workout history pages" hidden><button id="history-previous" class="text-button" type="button">← Previous</button><span id="history-page" role="status"></span><button id="history-next" class="text-button" type="button">Next →</button></nav>
-        <p class="history-note">Only finished workouts appear here. Dates use UTC.</p>
-      </section>
-      <section id="workout-details" class="card workout-details" aria-labelledby="details-heading" tabindex="-1" hidden>
-        <div class="section-heading"><h2 id="details-heading">Workout details</h2><button id="close-details" class="text-button" type="button">Close</button></div>
-        <p id="details-status" class="status" role="status" aria-live="polite"></p><div id="details-content"></div>
-      </section>
     </div>
   </main>
-  <nav class="bottom-nav" aria-label="Main navigation"><a href="index.html">&#8962;<span>Dashboard</span></a><a href="workout.html">&#65291;<span>Start Workout</span></a><a href="routines.html">&#9783;<span>Routines</span></a><a href="progress.html" aria-current="page">&#9637;<span>View Progress</span></a></nav>
+  <nav class="bottom-nav" aria-label="Main navigation">
+  <a href="index.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#home"></use></svg><span>Dashboard</span></a>
+  <a href="workout.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#dumbbell"></use></svg><span>Start Workout</span></a>
+  <a href="routines.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#layers"></use></svg><span>Routines</span></a>
+  <a href="progress.html" aria-current="page"><svg class="icon" aria-hidden="true"><use href="icons.svg#trend"></use></svg><span>View Progress</span></a>
+</nav>
 </div>
 <dialog id="delete-weight-dialog" aria-labelledby="delete-weight-title">
   <h2 id="delete-weight-title">Delete weight entry?</h2>

@@ -94,7 +94,7 @@ function renderRoutines() {
         const icon = document.createElement('span');
         icon.className = 'routine-icon';
         icon.setAttribute('aria-hidden', 'true');
-        icon.textContent = ['↗', '↓', '✳'][index % 3];
+        icon.innerHTML = '<svg class="icon" aria-hidden="true"><use href="icons.svg#layers"></use></svg>';
 
         const tag = document.createElement('span');
         tag.className = 'routine-tag';
@@ -103,7 +103,7 @@ function renderRoutines() {
         const deleteButton = document.createElement('button');
         deleteButton.className = 'routine-delete-button';
         deleteButton.type = 'button';
-        deleteButton.textContent = '🗑';
+        deleteButton.innerHTML = '<svg class="icon" aria-hidden="true"><use href="icons.svg#trash"></use></svg>';
         deleteButton.dataset.deleteRoutine = String(routine.id);
         deleteButton.setAttribute(
             'aria-label',

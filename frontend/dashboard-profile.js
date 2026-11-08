@@ -11,6 +11,8 @@ function showUser(user) {
     form.elements.units.value = user.weightUnit;
   }
 }
+const trainingDate = document.querySelector('#training-date');
+if (trainingDate) trainingDate.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
 async function loadPage() {
   setBusy(true);
   try {
@@ -30,8 +32,25 @@ async function loadPage() {
         recent.textContent = 'No completed workouts yet. Your activity will appear here after you finish a workout.';
       } else {
         for (const workout of data.recentWorkouts) {
-          const item = document.createElement('p');
-          item.textContent = `Workout #${workout.id} · ${new Date(workout.endTime).toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' })}`;
+          const item = document.createElement('a');
+          item.className = 'recent-row';
+          item.href = 'progress.html#workout-history';
+          const date = document.createElement('time');
+          date.dateTime = workout.endTime;
+          date.textContent = new Date(workout.endTime).toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short', day: 'numeric' });
+          const title = document.createElement('strong');
+          title.textContent = workout.routineName || 'Workout #' + workout.id;
+          const duration = document.createElement('span');
+          duration.className = 'recent-duration';
+          const minutes = Math.max(0, Math.round((Date.parse(workout.endTime) - Date.parse(workout.startTime)) / 60000));
+          duration.textContent = Number.isFinite(minutes) ? minutes + ' min' : '';
+          const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          arrow.setAttribute('class', 'icon');
+          arrow.setAttribute('aria-hidden', 'true');
+          const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+          use.setAttribute('href', 'icons.svg#chevron');
+          arrow.append(use);
+          item.append(date, title, duration, arrow);
           recent.append(item);
         }
       }

@@ -173,9 +173,10 @@ function drawChart() {
     if (text !== undefined) element.textContent = text;
     return element;
   };
-  const svg = svgNode('svg', { viewBox: '0 0 600 250', role: 'img', 'aria-labelledby': 'chart-title chart-description' });
+  const chartWidth = Math.max(260, container.clientWidth || 600);
+  const svg = svgNode('svg', { viewBox: `0 0 ${chartWidth} 250`, role: 'img', 'aria-labelledby': 'chart-title chart-description' });
   svg.append(svgNode('title', { id: 'chart-title' }, 'Workout weight progress'), svgNode('desc', { id: 'chart-description' }, `${points.length} sessions. Heaviest set: ${number(selection.max)} ${unit}. The data table below contains every plotted value.`));
-  const left = 50, right = 575, top = 32, bottom = 210;
+  const left = 50, right = chartWidth - 18, top = 32, bottom = 210;
   const max = Math.max(1, ...points.map(p => p.weight)) * 1.15;
   const minTime = +new Date(points[0].date), maxTime = +new Date(points[points.length - 1].date);
   const x = p => minTime === maxTime ? (left + right) / 2 : left + ((+new Date(p.date) - minTime) / (maxTime - minTime)) * (right - left);
@@ -319,4 +320,15 @@ document.querySelector('[data-logout]').addEventListener('click', async event =>
   catch (error) { pageStatus.textContent = error.message; button.disabled = false; }
 });
 window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
+// Keep chart labels readable when the window or phone orientation changes.
+if (typeof ResizeObserver !== 'undefined') {
+  let previousWidth = 0;
+  new ResizeObserver(entries => {
+    const width = Math.round(entries[0].contentRect.width);
+    if (width > 0 && width !== previousWidth) {
+      previousWidth = width;
+      if (selection) drawChart();
+    }
+  }).observe(document.querySelector('#chart-container'));
+}
 loadProgress();

@@ -9,24 +9,25 @@
 <script src="profile-extras.js" defer></script>
 <script src="dashboard-profile.js" defer>
 </script>
+<link rel="stylesheet" href="premium.css">
 </head>
 <body data-auth="loading">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
 <header class="topbar">
   <a class="brand" href="index.html">Gym Tracker</a>
-  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <a class="profile-link" href="profile.html" aria-current="page" aria-label="Open Profile" title="Profile"><svg class="icon" aria-hidden="true"><use href="icons.svg#user"></use></svg></a>
   <button class="text-button" data-logout type="button">Log Out</button>
 </header>
 <main id="main">
 <div class="page-heading">
-<p class="eyebrow">YOUR ACCOUNT, YOUR PROGRESS</p>
+<p class="eyebrow">ACCOUNT</p>
 <h1>Profile</h1>
-<p>Make your training feel like you.</p>
+<p>Your profile and training preferences.</p>
 </div>
 <p id="page-status" class="status" role="status">Loading your account…</p>
 <section class="profile-card card" aria-label="Profile picture">
-<div class="avatar"><img id="profile-picture" alt="Your profile picture" hidden><span id="picture-placeholder" aria-hidden="true">☺</span></div>
+<div class="avatar"><img id="profile-picture" alt="Your profile picture" hidden><span id="picture-placeholder" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="icons.svg#user"></use></svg></span></div>
 <h2 id="display-name" data-user-name>Your name</h2>
 <p id="picture-help">Choose a PNG, JPEG, or WebP image up to 5 MB.</p>
 <label for="picture-file">Change picture</label>
@@ -66,14 +67,10 @@
 </section>
 </main>
 <nav class="bottom-nav" aria-label="Main navigation">
-<a href="index.html" >⌂<span>Dashboard</span>
-</a>
-<a href="workout.html">＋<span>Start Workout</span>
-</a>
-<a href="routines.html">☷<span>Routines</span>
-</a>
-<a href="progress.html">▥<span>View Progress</span>
-</a>
+  <a href="index.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#home"></use></svg><span>Dashboard</span></a>
+  <a href="workout.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#dumbbell"></use></svg><span>Start Workout</span></a>
+  <a href="routines.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#layers"></use></svg><span>Routines</span></a>
+  <a href="progress.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#trend"></use></svg><span>View Progress</span></a>
 </nav>
 </div>
 <dialog id="delete-account-dialog" aria-labelledby="delete-account-title" aria-describedby="delete-account-help">
