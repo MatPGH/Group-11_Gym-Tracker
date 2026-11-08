@@ -25,7 +25,7 @@ async function dashboard(userId, now = new Date()) {
     get('SELECT COUNT(*) AS count FROM workouts WHERE user_id = ? AND datetime(end_time) >= datetime(?) AND datetime(end_time) <= datetime(?)', params),
     get('SELECT COUNT(*) AS count FROM routines WHERE user_id = ?', [userId]),
     all('SELECT DISTINCT date(end_time) AS day FROM workouts WHERE user_id = ? AND datetime(end_time) <= datetime(?) ORDER BY day DESC', [userId, now.toISOString()]),
-    all('SELECT id, start_time AS startTime, end_time AS endTime FROM workouts WHERE user_id = ? AND end_time IS NOT NULL AND datetime(end_time) <= datetime(?) ORDER BY datetime(end_time) DESC, id DESC LIMIT 3', [userId, now.toISOString()])
+    all('SELECT w.id, w.start_time AS startTime, w.end_time AS endTime, r.name AS routineName FROM workouts w LEFT JOIN routines r ON r.id = w.routine_id AND r.user_id = w.user_id WHERE w.user_id = ? AND w.end_time IS NOT NULL AND datetime(w.end_time) <= datetime(?) ORDER BY datetime(w.end_time) DESC, w.id DESC LIMIT 3', [userId, now.toISOString()])
   ]);
   const completedDays = new Set(days.map(row => row.day));
   const cursor = new Date(today);

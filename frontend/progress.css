@@ -7,19 +7,19 @@
 .progress-shell h1 { color: var(--lime); font-size: clamp(25px, 4vw, 34px); }
 .progress-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 34px 0 26px; }
 .progress-filters label { min-width: 0; color: var(--muted); font-size: 13px; }
-.progress-filters select { display: block; width: 100%; min-width: 0; min-height: 46px; margin-top: 7px; padding: 10px 12px; font: inherit; font-size: 15px; color: var(--text); background: #262a26; border: 1px solid var(--border); border-radius: 11px; }
+.progress-filters select { display: block; width: 100%; min-width: 0; min-height: 46px; margin-top: 7px; padding: 10px 12px; font: inherit; font-size: 15px; color: var(--text); background: #24272a; border: 1px solid var(--border); border-radius: 11px; }
 .progress-filters select:focus-visible, summary:focus-visible { outline: 3px solid var(--lime); outline-offset: 4px; }
 .progress-filters .primary { grid-column: 1 / -1; justify-self: center; min-width: 130px; border-radius: 30px; }
 .progress-chart-card { margin-top: 0; }
 .progress-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.progress-metrics > div { padding: 13px 8px; background: #30352e; border-radius: 18px; text-align: center; min-width: 0; }
+.progress-metrics > div { padding: 13px 8px; background: #24272a; border-radius: 18px; text-align: center; min-width: 0; }
 .progress-metrics span { display: block; font-size: 13px; color: var(--muted); }
 .progress-metrics strong { display: block; font-size: 20px; overflow-wrap: anywhere; }
 #chart-caption { text-align: center; margin: 18px 0 0; }
 #chart-container svg { display: block; width: 100%; height: auto; overflow: visible; margin-top: 14px; }
-.chart-grid { stroke: #3b4237; stroke-width: 1; }
+.chart-grid { stroke: #35383c; stroke-width: 1; }
 .chart-line { fill: none; stroke: var(--lime); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
-.chart-point { fill: var(--lime); stroke: #203014; stroke-width: 2; }
+.chart-point { fill: var(--lime); stroke: #101112; stroke-width: 2; }
 .chart-label { fill: var(--muted); font-size: 12px; font-family: Arial, sans-serif; }
 .chart-value { fill: var(--text); font-size: 12px; font-family: Arial, sans-serif; }
 .chart-data { margin-top: 12px; color: var(--muted); font-size: 13px; }
@@ -29,7 +29,7 @@
 .history-heading h2 { margin: 0; font-size: 19px; }
 #history-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .history-row { display: grid; grid-template-columns: 78px minmax(0,1fr) 24px; gap: 14px; align-items: center; width: 100%; padding: 18px 20px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; }
-.history-row:hover { background: #252e1e; }
+.history-row:hover { background: #24272a; }
 .history-row:focus-visible { outline-offset: -4px; }
 .history-date { border-right: 1px solid var(--border); padding-right: 12px; font-size: 14px; }
 .history-date small { display: block; color: var(--muted); font-size: 11px; }

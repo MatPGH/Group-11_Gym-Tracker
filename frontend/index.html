@@ -8,34 +8,35 @@
 <script src="api.js" defer></script>
 <script src="dashboard-profile.js" defer>
 </script>
+<link rel="stylesheet" href="premium.css">
 </head>
 <body data-auth="loading">
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
 <header class="topbar">
   <a class="brand" href="index.html">Gym Tracker</a>
-  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><svg class="icon" aria-hidden="true"><use href="icons.svg#user"></use></svg></a>
   <button class="text-button" data-logout type="button">Log Out</button>
 </header>
-<main id="main">
+<main id="main" class="dashboard-main">
 <div class="page-heading">
-<p class="eyebrow">YOUR TRAINING, AT A GLANCE</p>
-<h1>Welcome back, <span data-user-name></span>.</h1>
-<p>Make time for a stronger you.</p>
+<p class="eyebrow" id="training-date">YOUR TRAINING</p>
+<h1>Ready to train,<br><span data-user-name></span>?</h1>
+
 </div>
 <p id="page-status" class="status" role="status">Loading your account…</p>
 <section class="hero" aria-labelledby="workout-heading">
 <div>
-<p class="eyebrow">ONE WORKOUT AT A TIME</p>
-<h2 id="workout-heading">Let’s get moving.</h2>
-<p>Build a routine. Show up. Track your progress.</p>
-<a class="primary" href="workout.html">Start Workout <span aria-hidden="true">↗</span>
+<p class="eyebrow">YOUR NEXT SESSION</p>
+<h2 id="workout-heading">Make it count.</h2>
+<p>Choose your routine. Log every set.</p>
+<a class="primary" href="workout.html">Start Workout <svg class="icon" aria-hidden="true"><use href="icons.svg#arrow"></use></svg>
 </a>
 </div>
-<span class="hero-mark" aria-hidden="true">＋</span>
+
 </section>
-<section aria-labelledby="overview-heading">
-<h2 id="overview-heading">Your overview</h2>
+<section class="overview-section" aria-labelledby="overview-heading">
+<h2 id="overview-heading" class="sr-only">Your overview</h2>
 <div class="metrics">
 <div class="card">
 <span class="metric" data-metric="workoutsThisWeek">—</span>
@@ -51,40 +52,36 @@
 </div>
 </div>
 </section>
-<p class="field-help">Week starts Monday. Workout dates and streaks use UTC.</p>
-<section aria-labelledby="actions-heading">
-<h2 id="actions-heading">Keep building</h2>
+<p class="field-help dashboard-note">Week starts Monday. Workout dates and streaks use UTC.</p>
+<section class="dashboard-links" aria-labelledby="actions-heading">
+<h2 id="actions-heading" class="sr-only">Keep building</h2>
 <div class="actions">
 <a class="card action" href="routines.html">
-<span class="action-icon" aria-hidden="true">☷</span>
+<span class="action-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#layers"></use></svg></span>
 <strong>Routines</strong>
 <span>Plan your next session</span>
-<span class="arrow" aria-hidden="true">↗</span>
+<span class="arrow"><svg class="icon" aria-hidden="true"><use href="icons.svg#chevron"></use></svg></span>
 </a>
 <a class="card action" href="progress.html">
-<span class="action-icon" aria-hidden="true">▥</span>
+<span class="action-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#trend"></use></svg></span>
 <strong>View Progress</strong>
 <span>See how far you’ve come</span>
-<span class="arrow" aria-hidden="true">↗</span>
+<span class="arrow"><svg class="icon" aria-hidden="true"><use href="icons.svg#chevron"></use></svg></span>
 </a>
 </div>
 </section>
 <section class="card activity" aria-labelledby="recent-heading">
 <h2 id="recent-heading">Recent workouts</h2>
 <div id="recent-workouts"><p>Loading recent workouts…</p></div>
-<a class="text-button" href="progress.html#workout-history">View Workout History <span aria-hidden="true">→</span>
+<a class="text-button" href="progress.html#workout-history">View workout history <svg class="icon" aria-hidden="true"><use href="icons.svg#arrow"></use></svg>
 </a>
 </section>
 </main>
 <nav class="bottom-nav" aria-label="Main navigation">
-<a href="index.html" aria-current="page">⌂<span>Dashboard</span>
-</a>
-<a href="workout.html">＋<span>Start Workout</span>
-</a>
-<a href="routines.html">☷<span>Routines</span>
-</a>
-<a href="progress.html">▥<span>View Progress</span>
-</a>
+  <a href="index.html" aria-current="page"><svg class="icon" aria-hidden="true"><use href="icons.svg#home"></use></svg><span>Dashboard</span></a>
+  <a href="workout.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#dumbbell"></use></svg><span>Start Workout</span></a>
+  <a href="routines.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#layers"></use></svg><span>Routines</span></a>
+  <a href="progress.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#trend"></use></svg><span>View Progress</span></a>
 </nav>
 </div>
 <dialog id="feature-dialog" aria-labelledby="dialog-title">

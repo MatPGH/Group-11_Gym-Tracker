@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="dashboard-profile.css">
     <script src="api.js" defer></script>
     <script src="routines.js" defer></script>
+<link rel="stylesheet" href="premium.css">
 </head>
 <body data-auth="ready">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -14,7 +15,7 @@
     <div class="app-shell">
         <header class="topbar">
   <a class="brand" href="index.html">Gym Tracker</a>
-  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><img src="profile-icon.svg" width="24" height="24" alt=""></a>
+  <a class="profile-link" href="profile.html" aria-label="Open Profile" title="Profile"><svg class="icon" aria-hidden="true"><use href="icons.svg#user"></use></svg></a>
   <button class="text-button" data-logout type="button">Log Out</button>
 </header>
 
@@ -96,11 +97,11 @@
         </main>
 
         <nav class="bottom-nav" aria-label="Main navigation">
-            <a href="index.html">⌂<span>Dashboard</span></a>
-            <a href="workout.html">＋<span>Start Workout</span></a>
-            <a href="routines.html" aria-current="page">☷<span>Routines</span></a>
-            <a href="progress.html">▥<span>View Progress</span></a>
-        </nav>
+  <a href="index.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#home"></use></svg><span>Dashboard</span></a>
+  <a href="workout.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#dumbbell"></use></svg><span>Start Workout</span></a>
+  <a href="routines.html" aria-current="page"><svg class="icon" aria-hidden="true"><use href="icons.svg#layers"></use></svg><span>Routines</span></a>
+  <a href="progress.html"><svg class="icon" aria-hidden="true"><use href="icons.svg#trend"></use></svg><span>View Progress</span></a>
+</nav>
     </div>
 </body>
 </html>
