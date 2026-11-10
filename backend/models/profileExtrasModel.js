@@ -1,4 +1,3 @@
-const sqlite3 = require('sqlite3');
 const db = require('../database');
 
 const run = (connection, sql, params = []) => new Promise((resolve, reject) => {
@@ -21,9 +20,7 @@ async function savePicture(userId, image) {
 
 // Use a dedicated connection so unrelated requests cannot join this transaction.
 async function deleteAccount(userId) {
-  const connection = await new Promise((resolve, reject) => {
-    const opened = new sqlite3.Database(db.filename, error => error ? reject(error) : resolve(opened));
-  });
+  const connection = await require('../openConnection')(db);
   connection.configure('busyTimeout', 5000);
   let begun = false;
   try {

@@ -1,4 +1,3 @@
-const sqlite3 = require('sqlite3');
 const db = require('../database');
 const KG_TO_LBS = 2.20462;
 const storedWeight = (weight, unit) => unit === 'kg' ? weight * KG_TO_LBS : weight;
@@ -31,11 +30,7 @@ function transaction(work) {
 }
 
 async function runTransaction(work) {
-  const connection = await new Promise((resolve, reject) => {
-    const opened = new sqlite3.Database(db.filename, err =>
-      err ? reject(err) : resolve(opened)
-    );
-  });
+  const connection = await require('../openConnection')(db);
 
   connection.configure('busyTimeout', 5000);
   let begun = false;

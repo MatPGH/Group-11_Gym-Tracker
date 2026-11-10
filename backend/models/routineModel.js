@@ -1,6 +1,5 @@
 // SQLite persistence for personal routines. Each write owns its connection so
 // concurrent requests cannot join or roll back another request's transaction.
-const sqlite3 = require('sqlite3');
 const db = require('../database');
 
 function runSql(connection, sql, params = []) {
@@ -54,9 +53,7 @@ function transaction(work) {
 }
 
 async function runTransaction(work) {
-  const connection = await new Promise((resolve, reject) => {
-    const opened = new sqlite3.Database(db.filename, err => err ? reject(err) : resolve(opened));
-  });
+  const connection = await require('../openConnection')(db);
   connection.configure('busyTimeout', 5000);
   let begun = false;
   try {

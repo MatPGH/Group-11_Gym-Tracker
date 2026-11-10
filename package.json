@@ -6,17 +6,24 @@
   "main": "backend/server.js",
   "scripts": {
     "test": "node --test",
-    "start": "node backend/server.js",
+    "start": "node backend/productionStart.js",
     "dev": "nodemon backend/server.js",
-    "setup": "node backend/initDatabase.js && node backend/seedExercises.js"
+    "setup": "node backend/initDatabase.js && node backend/seedExercises.js",
+    "test:postgres": "node --test tests/postgres-deployment.test.js"
   },
   "dependencies": {
+    "connect-pg-simple": "^10.0.0",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.7.4",
     "express-session": "^1.18.1",
-    "sqlite3": "^5.1.7"
+    "pg": "^8.23.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "sqlite3": "^5.1.7"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
