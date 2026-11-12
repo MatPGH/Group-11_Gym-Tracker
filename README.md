@@ -29,10 +29,6 @@ Or select **Code → Download ZIP** on [GitHub](https://github.com/MatPGH/Group-
 
 Keep the terminal open while using the app. Press **Ctrl+C** to stop it.
 
-## Workout logging
+## Visit Website
 
-Active workouts support adding/removing exercises, editing sets, and optional session notes (up to 2,000 characters). Removing an exercise affects this session only. Notes save with **Save notes**, when leaving the field, or before finishing. A failed save keeps the workout open for retry.
-
-Workout weights are stored internally in pounds and converted to your profile preference in active workouts, history and progress charts. Older records did not store a unit. After upgrading, open an older workout and confirm whether its recorded weights were originally lbs or kg. Values remain unchanged and stay out of weight-chart calculations until confirmed. Do not guess if you cannot identify the original unit.
-
-Run `npm run setup` after upgrading. The database update also runs on server startup, preserves existing records, and can be repeated safely. Run `npm test` to check the application.
+Visit https://gym-tracker-demo.onrender.com/login.html for the WebApp
